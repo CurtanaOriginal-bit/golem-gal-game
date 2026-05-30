@@ -13,4 +13,9 @@ public class EntryModel : MonoBehaviour
     {
         
     }
+
+    public void SamplefFunctionModel()
+    {
+
+    }
 }
