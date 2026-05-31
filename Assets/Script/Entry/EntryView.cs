@@ -2,6 +2,7 @@ using UnityEngine;
 
 public class EntryView : ViewBase
 {
+    EntryPresenter _entryPresenter;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -12,5 +13,10 @@ public class EntryView : ViewBase
     void Update()
     {
         
+    }
+
+    void Smaple()
+    {
+        _entryPresenter.SamplefFunction();
     }
 }
