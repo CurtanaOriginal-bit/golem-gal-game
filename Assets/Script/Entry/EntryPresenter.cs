@@ -2,22 +2,39 @@ using UnityEngine;
 
 public class EntryPresenter : MonoBehaviour
 {
-    EntryModel _entryModel;
+    [SerializeField] private EntryView entryView;
+    [SerializeField] private EntryModel entryModel;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
-        
+        if (entryView == null || entryModel == null)
+        {
+            Debug.LogError("EntryView または EntryModel がアタッチされていません。");
+            return;
+        }
+
+        // データのロードと初期値設定
+        entryModel.LoadSettings();
+        entryView.InitializeSliders(entryModel.MasterVolume, entryModel.BGMVolume, entryModel.SEVolume);
+
+        // ViewのイベントをPresenter経由でModelやシステムに繋ぐ
+        entryView.OnStartClicked = HandleStartGame;
+        entryView.OnSettingsClicked = () => entryView.SetSettingsPanelActive(true);
+        entryView.OnCloseSettingsClicked = () => entryView.SetSettingsPanelActive(false);
+        entryView.OnExitClicked = HandleExitGame;
+
+        entryView.OnMasterVolumeChanged = entryModel.SaveMasterVolume;
+        entryView.OnBgmVolumeChanged = entryModel.SaveBGMVolume;
+        entryView.OnSeVolumeChanged = entryModel.SaveSEVolume;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void HandleStartGame()
     {
-        
+        entryView.StartGame();
     }
 
-    public void SamplefFunction()
+    private void HandleExitGame()
     {
-        _entryModel.SamplefFunctionModel();
+        entryModel.QuitGame();
     }
 }
