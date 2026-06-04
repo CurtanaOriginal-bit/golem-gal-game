@@ -877,7 +877,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 0}
+  m_Sprite: {fileID: 21300000, guid: d2226e80092056848bb37512140ee7da, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1341,6 +1341,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c545034d5b918349948e4c9ec4d4b91, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EntryView
+  startButton: {fileID: 0}
+  settingsButton: {fileID: 0}
+  exitButton: {fileID: 0}
+  mainGameUI: {fileID: 0}
+  settingsPanel: {fileID: 0}
+  closeSettingsButton: {fileID: 0}
+  masterVolumeSlider: {fileID: 0}
+  bgmVolumeSlider: {fileID: 0}
+  seVolumeSlider: {fileID: 0}
 --- !u!1 &2018824571
 GameObject:
   m_ObjectHideFlags: 0
