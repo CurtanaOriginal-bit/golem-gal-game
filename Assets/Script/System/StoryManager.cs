@@ -8,22 +8,17 @@ using UnityEngine.UI;
 public class StoryManager : MonoBehaviour
 {
     [SerializeField] private StoryData[] storyDatas;
-
     [SerializeField] private Image background;
-
     [SerializeField] private Image characterImage;
-
     [SerializeField] private TextMeshProUGUI storyText;
-
     [SerializeField] private TextMeshProUGUI characterName;
 
-    //ストーリーのエレメント配列番号が必要なのでプロパティ
     public int storyIndex { get; private set; }
-
     public int textIndex { get; private set; }
 
-    //テキストがすべて表示されたかどうか
+    // テキストがすべて表示されたかどうか
     private bool finishText = false;
+    private IEnumerator _typeSentence;
 
     private void Start()
     {
@@ -32,65 +27,107 @@ public class StoryManager : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
-        {
-            textIndex++; //インデックスを増やす
+        bool isSpace = Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
+        bool isEnter = Keyboard.current != null && Keyboard.current.enterKey.wasPressedThisFrame;
+        bool isNumpadEnter = Keyboard.current != null && Keyboard.current.numpadEnterKey.wasPressedThisFrame;
+        bool isClick = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
 
-            ProgressionStory(storyIndex);
+        if (isSpace || isEnter || isNumpadEnter || isClick)
+        {
+            if (finishText)
+            {
+                // 文字がすべて表示されているなら、次のセリフへ進む
+                textIndex++;
+                ProgressionStory(storyIndex);
+            }
+            else
+            {
+                // まだ文字がタイピング途中なら、一瞬で全文字を表示する（スキップ）
+                SkipToFullText(storyIndex, textIndex);
+            }
         }
     }
 
-    //呼び出しメソッド
     private void SetStoryElement(int _storyIndex, int _textIndex)
     {
-        //同じ言葉をまとめておくためのvar
         var storyElement = storyDatas[_storyIndex].stories[_textIndex];
 
-        //どのストーリーデータの、どのバックグランドか
         background.sprite = storyElement.Background;
-
-        //どのストーリーデータの、どのキャラクタか
         characterImage.sprite = storyElement.CharacterImage;
-
-        //どのストーリーデータの、どのテキストか
-        //1文字づつ表示するコルーチン
-        StartCoroutine(TypeSentence(_storyIndex, _textIndex));
-
-        //どのストーリーデータの、どのキャラ名か
         characterName.text = storyElement.CharacterName;
+
+        // すでに動いているコルーチンがあれば、安全に停止させる
+        if (_typeSentence != null)
+        {
+            StopCoroutine(_typeSentence);
+        }
+
+        _typeSentence = TypeSentence(_storyIndex, _textIndex);
+        StartCoroutine(_typeSentence);
     }
 
     private void ProgressionStory(int _storyIndex)
     {
         characterName.text = "";
 
-        //ストーリーインデックスよりも大きいテキストは存在しないのでチェックして対応
-        //最後まで行ったなら、次のお話などに進めたいですよね
+        // まだ現在のストーリーの中に次のセリフがある場合
         if (textIndex < storyDatas[_storyIndex].stories.Count)
         {
-            //まだ大きくないなら次のインデックスを表示
             SetStoryElement(_storyIndex, textIndex);
         }
         else
         {
-            //シーンチェンジや選択肢の表示。スクリプタブルオブジェクトを呼んだり。
+            // 次のストーリーデータ（章）へ進む
             textIndex = 0;
-            storyIndex++;//次のシーンへ
-            SetStoryElement(storyIndex, textIndex);
+            storyIndex++;
+
+            // 次のストーリーデータが「まだ存在するか」をチェックする
+            if (storyIndex < storyDatas.Length)
+            {
+                // 次のデータがあるなら再生
+                SetStoryElement(storyIndex, textIndex);
+            }
+            else
+            {
+                // すべてのストーリーが完全に終了した場合の処理
+                Debug.Log("【ゲーム終了】すべてのストーリーを読み終えました！");
+
+                // エラーでフリーズするのを防ぐため、インデックスを最後のセリフで止めておく
+                storyIndex = storyDatas.Length - 1;
+                textIndex = storyDatas[storyIndex].stories.Count - 1;
+
+                // TODO: ここに「タイトル画面に戻る」や「エンディングに移る」などの処理を書く
+            }
         }
     }
 
-    //文字を1文字づつ表示するコルーチン
+    // 文字を1文字づつ表示するコルーチン
     private IEnumerator TypeSentence(int _storyIndex, int _textIndex)
-    {       
-        //テキスト部を初期化
+    {
+        finishText = false; // タイピング開始なのでフラグをfalseに
         storyText.text = "";
 
-        //１文字づつ文字を分割した状態にする
         foreach (var letter in storyDatas[_storyIndex].stories[_textIndex].StoryText.ToCharArray())
         {
-            storyText.text += letter;//1文字表示
+            storyText.text += letter;
             yield return new WaitForSeconds(0.05f);
         }
+
+        finishText = true; // 全部表示し終わったらtrueにする
+    }
+
+    // 文字を瞬間全表示するメソッド
+    private void SkipToFullText(int _storyIndex, int _textIndex)
+    {
+        // 動いているコルーチンを止める
+        if (_typeSentence != null)
+        {
+            StopCoroutine(_typeSentence);
+        }
+
+        // テキストデータの中身をそのまま全表示
+        storyText.text = storyDatas[_storyIndex].stories[_textIndex].StoryText;
+
+        finishText = true; // 表示完了フラグを立てる
     }
 }
