@@ -8,23 +8,20 @@ public class EntryView : ViewBase
     [SerializeField] private Button startButton;
     [SerializeField] private Button settingsButton;
     [SerializeField] private Button exitButton;
-    [SerializeField] private GameObject mainGameUI; // GamesシーンのStartUpViewなど
 
-    [Header("Settings Panel UI")]
-    [SerializeField] private GameObject settingsPanel;
-    [SerializeField] private Button closeSettingsButton;
-    [SerializeField] private Slider masterVolumeSlider;
-    [SerializeField] private Slider bgmVolumeSlider;
-    [SerializeField] private Slider seVolumeSlider;
+    [Header("Settings Prefab UI")]
+    [SerializeField] private SettingsView settingsPrefab;
+    [SerializeField] private RectTransform canvasTransform;
+
+    private SettingsView activeSettingsInstance;
 
     // Presenterが登録するコールバック
     public Action OnStartClicked;
     public Action OnSettingsClicked;
     public Action OnExitClicked;
-    public Action OnCloseSettingsClicked;
-    public Action<float> OnMasterVolumeChanged;
-    public Action<float> OnBgmVolumeChanged;
-    public Action<float> OnSeVolumeChanged;
+    
+    // 設定画面が生成されたときにPresenterに通知するコールバック
+    public Action<SettingsView> OnSettingsOpened;
 
     void Start()
     {
@@ -32,38 +29,31 @@ public class EntryView : ViewBase
         if (startButton != null) startButton.onClick.AddListener(() => OnStartClicked?.Invoke());
         if (settingsButton != null) settingsButton.onClick.AddListener(() => OnSettingsClicked?.Invoke());
         if (exitButton != null) exitButton.onClick.AddListener(() => OnExitClicked?.Invoke());
-        if (closeSettingsButton != null) closeSettingsButton.onClick.AddListener(() => OnCloseSettingsClicked?.Invoke());
-
-        if (masterVolumeSlider != null) masterVolumeSlider.onValueChanged.AddListener(val => OnMasterVolumeChanged?.Invoke(val));
-        if (bgmVolumeSlider != null) bgmVolumeSlider.onValueChanged.AddListener(val => OnBgmVolumeChanged?.Invoke(val));
-        if (seVolumeSlider != null) seVolumeSlider.onValueChanged.AddListener(val => OnSeVolumeChanged?.Invoke(val));
-
-        // 初期状態で設定画面は非表示
-        SetSettingsPanelActive(false);
     }
 
-    public void SetSettingsPanelActive(bool active)
+    public bool IsSettingsPanelActive => activeSettingsInstance != null;
+
+    public void OpenSettings()
     {
-        if (settingsPanel != null)
+        if (activeSettingsInstance != null) return;
+
+        if (settingsPrefab != null && canvasTransform != null)
         {
-            settingsPanel.SetActive(active);
+            activeSettingsInstance = Instantiate(settingsPrefab, canvasTransform);
+            OnSettingsOpened?.Invoke(activeSettingsInstance);
+        }
+        else
+        {
+            Debug.LogError("settingsPrefab または canvasTransform がアタッチされていません。");
         }
     }
 
-    public void StartGame()
+    public void CloseSettings()
     {
-        // タイトル画面を非表示にし、メインゲームUIを表示する
-        gameObject.SetActive(false);
-        if (mainGameUI != null)
+        if (activeSettingsInstance != null)
         {
-            mainGameUI.SetActive(true);
+            Destroy(activeSettingsInstance.gameObject);
+            activeSettingsInstance = null;
         }
-    }
-
-    public void InitializeSliders(float master, float bgm, float se)
-    {
-        if (masterVolumeSlider != null) masterVolumeSlider.value = master;
-        if (bgmVolumeSlider != null) bgmVolumeSlider.value = bgm;
-        if (seVolumeSlider != null) seVolumeSlider.value = se;
     }
 }

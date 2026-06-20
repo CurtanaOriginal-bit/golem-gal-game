@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class EntryModel : MonoBehaviour
 {
@@ -56,5 +57,10 @@ public class EntryModel : MonoBehaviour
 #else
         Application.Quit();
 #endif
+    }
+
+    public void LoadIntroductionScene()
+    {
+        SceneManager.LoadScene("Introduction");
     }
 }
