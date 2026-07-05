@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class EntryModel : MonoBehaviour
 {
@@ -10,11 +11,19 @@ public class EntryModel : MonoBehaviour
     public float BGMVolume { get; private set; }
     public float SEVolume { get; private set; }
 
+    private SceneLoader _introductionSceneLoader;
+
+    private void Awake()
+    {
+        _introductionSceneLoader = new SceneLoader("Introduction");
+    }
+
     public void LoadSettings()
     {
         MasterVolume = PlayerPrefs.GetFloat(MasterVolumeKey, 1f);
         BGMVolume = PlayerPrefs.GetFloat(BGMVolumeKey, 1f);
         SEVolume = PlayerPrefs.GetFloat(SEVolumeKey, 1f);
+        ApplyVolume();
     }
 
     public void SaveMasterVolume(float value)
@@ -56,5 +65,26 @@ public class EntryModel : MonoBehaviour
 #else
         Application.Quit();
 #endif
+    }
+
+    public void LoadIntroductionScene()
+    {
+        _introductionSceneLoader.Load();
+    }
+
+    // === インナークラス定義 ===
+    private class SceneLoader
+    {
+        private readonly string _sceneName;
+
+        public SceneLoader(string sceneName)
+        {
+            _sceneName = sceneName;
+        }
+
+        public void Load()
+        {
+            SceneManager.LoadScene(_sceneName);
+        }
     }
 }
