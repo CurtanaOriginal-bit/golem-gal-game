@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class StoryManager : MonoBehaviour
@@ -97,6 +98,7 @@ public class StoryManager : MonoBehaviour
                 textIndex = storyDatas[storyIndex].stories.Count - 1;
 
                 // TODO: ここに「タイトル画面に戻る」や「エンディングに移る」などの処理を書く
+                SceneManager.LoadScene("main_1");
             }
         }
     }
