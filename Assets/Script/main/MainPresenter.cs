@@ -23,6 +23,11 @@ public class MainPresenter : MonoBehaviour
         mainView.OnTitleClicked += HandleTitleClicked;
         mainView.OnTalkButtonClicked += HandleTalkButtonClicked;
         mainView.OnTalkWindowClicked += HandleTalkWindowClicked;
+        mainView.OnToggleOutfitClicked += HandleToggleOutfitClicked;
+        mainView.OnLoopAnimationButtonClicked += HandleLoopAnimationButtonClicked;
+
+        // 初期衣装状態の反映
+        mainView.SetOutfit(mainModel.IsStripped);
     }
 
     private void OnDisable()
@@ -35,11 +40,14 @@ public class MainPresenter : MonoBehaviour
             mainView.OnTitleClicked -= HandleTitleClicked;
             mainView.OnTalkButtonClicked -= HandleTalkButtonClicked;
             mainView.OnTalkWindowClicked -= HandleTalkWindowClicked;
+            mainView.OnToggleOutfitClicked -= HandleToggleOutfitClicked;
+            mainView.OnLoopAnimationButtonClicked -= HandleLoopAnimationButtonClicked;
         }
     }
 
     private void HandleSettingsClicked()
     {
+        mainView.StopLoopAnimation();
         mainView.OpenSettings();
     }
 
@@ -64,11 +72,13 @@ public class MainPresenter : MonoBehaviour
 
     private void HandleTitleClicked()
     {
+        mainView.StopLoopAnimation();
         mainModel.LoadTitleScene();
     }
 
     private void HandleTalkButtonClicked(int index)
     {
+        mainView.StopLoopAnimation();
         mainModel.StartTalk(index);
         string text = mainModel.GetCurrentSentence();
         mainView.OpenTalkWindow(text);
@@ -85,5 +95,17 @@ public class MainPresenter : MonoBehaviour
         {
             mainView.CloseTalkWindow();
         }
+    }
+
+    private void HandleToggleOutfitClicked()
+    {
+        mainView.StopLoopAnimation();
+        mainModel.ToggleOutfit();
+        mainView.SetOutfit(mainModel.IsStripped);
+    }
+
+    private void HandleLoopAnimationButtonClicked(int index)
+    {
+        mainView.PlayLoopAnimation(index);
     }
 }

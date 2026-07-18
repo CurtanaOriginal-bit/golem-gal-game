@@ -11,6 +11,8 @@ public class MainModel : MonoBehaviour
     public float BGMVolume { get; private set; }
     public float SEVolume { get; private set; }
 
+    public bool IsStripped { get; private set; }
+
     private SceneLoader _titleSceneLoader;
 
     [System.Serializable]
@@ -116,6 +118,12 @@ public class MainModel : MonoBehaviour
         Debug.Log($"[MainModel] 会話終了 - TalkIndex: {_currentTalkIndex}");
         _currentTalkIndex = -1;
         _currentSentenceIndex = -1;
+    }
+
+    public void ToggleOutfit()
+    {
+        IsStripped = !IsStripped;
+        Debug.Log($"[MainModel] 衣装状態切り替え - IsStripped: {IsStripped}");
     }
 
     // === インナークラス定義 ===
