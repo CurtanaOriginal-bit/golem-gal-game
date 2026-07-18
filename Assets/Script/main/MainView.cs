@@ -186,6 +186,8 @@ public class MainView : ViewBase
             return;
         }
 
+        characterRawImage.gameObject.SetActive(true); // 確実に表示状態にする
+
         Texture2D targetTexture = isStripped ? strippedTexture : clothedTexture;
         if (targetTexture != null)
         {
@@ -279,10 +281,10 @@ public class MainView : ViewBase
 
         _activeAnimationIndex = -1; // アクティブ状態をリセット
 
-        RawImage targetImage = animationRawImage != null ? animationRawImage : characterRawImage;
-        if (targetImage != null)
+        // アニメーション専用のRawImageがある場合のみ非表示にする
+        if (animationRawImage != null)
         {
-            targetImage.gameObject.SetActive(false);
+            animationRawImage.gameObject.SetActive(false);
         }
     }
 }

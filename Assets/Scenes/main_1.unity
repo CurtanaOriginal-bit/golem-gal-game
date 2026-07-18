@@ -516,9 +516,7 @@ MonoBehaviour:
   animationRawImage: {fileID: 0}
   loopAnimations:
   - button: {fileID: 0}
-    textures:
-    - {fileID: 0}
-    - {fileID: 0}
+    textures: []
     isLoop: 0
   - button: {fileID: 1902056888}
     textures:
