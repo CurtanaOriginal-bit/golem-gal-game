@@ -53,8 +53,29 @@ public class StoryManager : MonoBehaviour
     {
         var storyElement = storyDatas[_storyIndex].stories[_textIndex];
 
-        background.sprite = storyElement.Background;
-        characterImage.sprite = storyElement.CharacterImage;
+        // --- 背景画像の処理 ---
+        if (storyElement.Background != null)
+        {
+            background.enabled = true; // Imageコンポーネントを有効化
+            background.sprite = storyElement.Background;
+        }
+        else
+        {
+            background.enabled = false; // データがない場合はImageを非表示にする
+            // もしくは、透明にしたい場合はこちら： background.sprite = null;
+        }
+
+        // --- キャラクター画像の処理（こちらも同様に対策しておくと安全です） ---
+        if (storyElement.CharacterImage != null)
+        {
+            characterImage.enabled = true;
+            characterImage.sprite = storyElement.CharacterImage;
+        }
+        else
+        {
+            characterImage.enabled = false; // キャラがいないセリフでは非表示
+        }
+
         characterName.text = storyElement.CharacterName;
 
         // すでに動いているコルーチンがあれば、安全に停止させる
