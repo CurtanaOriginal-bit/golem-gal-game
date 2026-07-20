@@ -14,6 +14,8 @@ public class StoryManager : MonoBehaviour
     [SerializeField] private TextMeshProUGUI storyText;
     [SerializeField] private TextMeshProUGUI characterName;
 
+    [SerializeField] private Button skipButton;
+
     public int storyIndex { get; private set; }
     public int textIndex { get; private set; }
 
@@ -21,9 +23,30 @@ public class StoryManager : MonoBehaviour
     private bool finishText = false;
     private IEnumerator _typeSentence;
 
+    // クラス内のフィールド定義エリアに追加
+    [SerializeField] private string nextSceneName = "main_1"; // 遷移先のシーン名
+
     private void Start()
     {
         SetStoryElement(storyIndex, textIndex);
+    }
+
+    private void OnEnable()
+    {
+        // UIのイベント登録
+        if (skipButton != null)
+        {
+            skipButton.onClick.AddListener(OnClickSkipButton);
+        }
+    }
+
+    private void OnDisable()
+    {
+        // UIのイベント解除
+        if (skipButton != null)
+        {
+            skipButton.onClick.RemoveListener(OnClickSkipButton);
+        }
     }
 
     private void Update()
@@ -119,7 +142,7 @@ public class StoryManager : MonoBehaviour
                 textIndex = storyDatas[storyIndex].stories.Count - 1;
 
                 // TODO: ここに「タイトル画面に戻る」や「エンディングに移る」などの処理を書く
-                SceneManager.LoadScene("main_1");
+                SceneManager.LoadScene(nextSceneName);
             }
         }
     }
@@ -152,5 +175,22 @@ public class StoryManager : MonoBehaviour
         storyText.text = storyDatas[_storyIndex].stories[_textIndex].StoryText;
 
         finishText = true; // 表示完了フラグを立てる
+    }
+
+
+    // --- 追加するメソッド ---
+    /// <summary>
+    /// スキップボタンから呼び出す処理
+    /// </summary>
+    public void OnClickSkipButton()
+    {
+        // タイピング中のコルーチンがあれば停止しておく
+        if (_typeSentence != null)
+        {
+            StopCoroutine(_typeSentence);
+        }
+
+        // "main" シーン（または Inspector で指定したシーン）へ遷移
+        SceneManager.LoadScene(nextSceneName);
     }
 }
