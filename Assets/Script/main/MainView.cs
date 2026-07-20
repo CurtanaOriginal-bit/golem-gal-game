@@ -38,6 +38,13 @@ public class MainView : ViewBase
     private SettingsView activeSettingsInstance;
     private TalkWindowView activeTalkWindowInstance;
 
+    [Header("Gauge UI")]
+    [SerializeField] private Image gaugeInside1;
+    [SerializeField] private Image gaugeInside2;
+    [SerializeField] private Transform contOpeTransform;
+
+    public event Action OnAnyOpeButtonClicked;
+
     // Presenterが登録するコールバック
     public event Action OnSettingsClicked;
     public event Action OnTitleClicked;
@@ -49,8 +56,44 @@ public class MainView : ViewBase
     // 設定画面が生成されたときにPresenterに通知するコールバック
     public event Action<SettingsView> OnSettingsOpened;
 
+    private void Awake()
+    {
+        // 自動アタッチのフォールバック
+        if (gaugeInside1 == null)
+        {
+            var go = GameObject.Find("Gauge_Inside1");
+            if (go != null) gaugeInside1 = go.GetComponent<Image>();
+        }
+        if (gaugeInside2 == null)
+        {
+            var go = GameObject.Find("Gauge_Inside2");
+            if (go != null) gaugeInside2 = go.GetComponent<Image>();
+        }
+        if (contOpeTransform == null)
+        {
+            var go = GameObject.Find("Cont_ope");
+            if (go != null) contOpeTransform = go.transform;
+        }
+
+        // ゲージの初期設定の自動適用（参考サイトの設定）
+        SetupGaugeImage(gaugeInside1);
+        SetupGaugeImage(gaugeInside2);
+    }
+
+    private void SetupGaugeImage(Image img)
+    {
+        if (img != null)
+        {
+            img.type = Image.Type.Filled;
+            img.fillMethod = Image.FillMethod.Horizontal;
+            img.fillOrigin = (int)Image.OriginHorizontal.Left;
+            Debug.Log($"[MainView] ゲージImage設定自動適用: {img.gameObject.name}");
+        }
+    }
+
     private void OnEnable()
     {
+        RegisterContOpeButtons();
         if (settingsButton != null) settingsButton.onClick.AddListener(HandleSettingsClicked);
         if (titleButton != null) titleButton.onClick.AddListener(HandleTitleClicked);
         if (toggleOutfitButton != null) toggleOutfitButton.onClick.AddListener(HandleToggleOutfitClicked);
@@ -82,6 +125,7 @@ public class MainView : ViewBase
 
     private void OnDisable()
     {
+        UnregisterContOpeButtons();
         if (settingsButton != null) settingsButton.onClick.RemoveListener(HandleSettingsClicked);
         if (titleButton != null) titleButton.onClick.RemoveListener(HandleTitleClicked);
         if (toggleOutfitButton != null) toggleOutfitButton.onClick.RemoveListener(HandleToggleOutfitClicked);
@@ -286,5 +330,49 @@ public class MainView : ViewBase
         {
             animationRawImage.gameObject.SetActive(false);
         }
+    }
+
+    private void RegisterContOpeButtons()
+    {
+        if (contOpeTransform == null)
+        {
+            Debug.LogWarning("[MainView] contOpeTransform がアタッチされていないため、ボタンの監視ができません。");
+            return;
+        }
+
+        Button[] buttons = contOpeTransform.GetComponentsInChildren<Button>(true);
+        foreach (var btn in buttons)
+        {
+            btn.onClick.AddListener(HandleAnyOpeButtonClicked);
+        }
+        Debug.Log($"[MainView] Cont_ope内の {buttons.Length} 個のボタンにゲージ増加イベントを登録しました。");
+    }
+
+    private void UnregisterContOpeButtons()
+    {
+        if (contOpeTransform == null) return;
+        Button[] buttons = contOpeTransform.GetComponentsInChildren<Button>(true);
+        foreach (var btn in buttons)
+        {
+            btn.onClick.RemoveListener(HandleAnyOpeButtonClicked);
+        }
+    }
+
+    private void HandleAnyOpeButtonClicked()
+    {
+        OnAnyOpeButtonClicked?.Invoke();
+    }
+
+    public void UpdateGaugeFill(float gauge1FillAmount, float gauge2FillAmount)
+    {
+        if (gaugeInside1 != null)
+        {
+            gaugeInside1.fillAmount = gauge1FillAmount;
+        }
+        if (gaugeInside2 != null)
+        {
+            gaugeInside2.fillAmount = gauge2FillAmount;
+        }
+        Debug.Log($"[MainView] ゲージ表示更新 - Gauge1: {gauge1FillAmount}, Gauge2: {gauge2FillAmount}");
     }
 }

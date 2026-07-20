@@ -28,6 +28,11 @@ public class MainPresenter : MonoBehaviour
 
         // 初期衣装状態の反映
         mainView.SetOutfit(mainModel.IsStripped);
+
+        // ゲージの購読と初期化
+        mainModel.OnGaugeChanged += HandleGaugeChanged;
+        mainView.OnAnyOpeButtonClicked += HandleAnyOpeButtonClicked;
+        mainModel.InitializeGauges();
     }
 
     private void OnDisable()
@@ -42,6 +47,12 @@ public class MainPresenter : MonoBehaviour
             mainView.OnTalkWindowClicked -= HandleTalkWindowClicked;
             mainView.OnToggleOutfitClicked -= HandleToggleOutfitClicked;
             mainView.OnLoopAnimationButtonClicked -= HandleLoopAnimationButtonClicked;
+            mainView.OnAnyOpeButtonClicked -= HandleAnyOpeButtonClicked;
+        }
+
+        if (mainModel != null)
+        {
+            mainModel.OnGaugeChanged -= HandleGaugeChanged;
         }
     }
 
@@ -107,5 +118,15 @@ public class MainPresenter : MonoBehaviour
     private void HandleLoopAnimationButtonClicked(int index)
     {
         mainView.PlayLoopAnimation(index);
+    }
+
+    private void HandleAnyOpeButtonClicked()
+    {
+        mainModel.IncreaseGauge1(10f);
+    }
+
+    private void HandleGaugeChanged(float gauge1Value, float gauge2Value)
+    {
+        mainView.UpdateGaugeFill(gauge1Value / MainModel.MaxGaugeValue, gauge2Value / MainModel.MaxGaugeValue);
     }
 }

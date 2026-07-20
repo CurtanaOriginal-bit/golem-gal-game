@@ -13,6 +13,12 @@ public class MainModel : MonoBehaviour
 
     public bool IsStripped { get; private set; }
 
+    // === Gauge Data ===
+    public const float MaxGaugeValue = 100f;
+    public float Gauge1Value { get; private set; }
+    public float Gauge2Value { get; private set; }
+    public event System.Action<float, float> OnGaugeChanged;
+
     private SceneLoader _titleSceneLoader;
 
     [System.Serializable]
@@ -124,6 +130,21 @@ public class MainModel : MonoBehaviour
     {
         IsStripped = !IsStripped;
         Debug.Log($"[MainModel] 衣装状態切り替え - IsStripped: {IsStripped}");
+    }
+
+    public void InitializeGauges()
+    {
+        Gauge1Value = 0f;
+        Gauge2Value = 0f;
+        OnGaugeChanged?.Invoke(Gauge1Value, Gauge2Value);
+        Debug.Log($"[MainModel] ゲージ初期化 - Gauge1: {Gauge1Value}, Gauge2: {Gauge2Value}");
+    }
+
+    public void IncreaseGauge1(float amount)
+    {
+        Gauge1Value = Mathf.Clamp(Gauge1Value + amount, 0f, MaxGaugeValue);
+        OnGaugeChanged?.Invoke(Gauge1Value, Gauge2Value);
+        Debug.Log($"[MainModel] Gauge1増加: {Gauge1Value}/{MaxGaugeValue}");
     }
 
     // === インナークラス定義 ===
