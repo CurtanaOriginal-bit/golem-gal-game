@@ -7,6 +7,7 @@ public class MainView : ViewBase
     [Header("Settings UI")]
     [SerializeField] private Button settingsButton;
     [SerializeField] private Button titleButton;
+    [SerializeField] private Button endingButton;
 
     [Header("Talk UI")]
     [SerializeField] private Button[] talkButtons;
@@ -48,6 +49,7 @@ public class MainView : ViewBase
     // Presenterが登録するコールバック
     public event Action OnSettingsClicked;
     public event Action OnTitleClicked;
+    public event Action OnEndingClicked;
     public event Action<int> OnTalkButtonClicked;
     public event Action OnTalkWindowClicked;
     public event Action OnToggleOutfitClicked;
@@ -75,6 +77,12 @@ public class MainView : ViewBase
             if (go != null) contOpeTransform = go.transform;
         }
 
+        if (endingButton == null)
+        {
+            var go = GameObject.Find("Ending_Button");
+            if (go != null) endingButton = go.GetComponent<Button>();
+        }
+
         // ゲージの初期設定の自動適用（参考サイトの設定）
         SetupGaugeImage(gaugeInside1);
         SetupGaugeImage(gaugeInside2);
@@ -96,6 +104,7 @@ public class MainView : ViewBase
         RegisterContOpeButtons();
         if (settingsButton != null) settingsButton.onClick.AddListener(HandleSettingsClicked);
         if (titleButton != null) titleButton.onClick.AddListener(HandleTitleClicked);
+        if (endingButton != null) endingButton.onClick.AddListener(HandleEndingClicked);
         if (toggleOutfitButton != null) toggleOutfitButton.onClick.AddListener(HandleToggleOutfitClicked);
         
         if (talkButtons != null)
@@ -128,6 +137,7 @@ public class MainView : ViewBase
         UnregisterContOpeButtons();
         if (settingsButton != null) settingsButton.onClick.RemoveListener(HandleSettingsClicked);
         if (titleButton != null) titleButton.onClick.RemoveListener(HandleTitleClicked);
+        if (endingButton != null) endingButton.onClick.RemoveListener(HandleEndingClicked);
         if (toggleOutfitButton != null) toggleOutfitButton.onClick.RemoveListener(HandleToggleOutfitClicked);
         
         if (talkButtons != null)
@@ -156,6 +166,8 @@ public class MainView : ViewBase
     private void HandleSettingsClicked() => OnSettingsClicked?.Invoke();
 
     private void HandleTitleClicked() => OnTitleClicked?.Invoke();
+
+    private void HandleEndingClicked() => OnEndingClicked?.Invoke();
 
     private void HandleTalkWindowClicked() => OnTalkWindowClicked?.Invoke();
 

@@ -20,6 +20,7 @@ public class MainModel : MonoBehaviour
     public event System.Action<float, float> OnGaugeChanged;
 
     private SceneLoader _titleSceneLoader;
+    private SceneLoader _endingSceneLoader;
 
     [System.Serializable]
     public class TalkGroup
@@ -41,6 +42,7 @@ public class MainModel : MonoBehaviour
     private void Awake()
     {
         _titleSceneLoader = new SceneLoader("Title");
+        _endingSceneLoader = new SceneLoader("Ending");
     }
 
     public void LoadSettings()
@@ -84,6 +86,11 @@ public class MainModel : MonoBehaviour
     public void LoadTitleScene()
     {
         _titleSceneLoader.Load();
+    }
+
+    public void LoadEndingScene()
+    {
+        _endingSceneLoader.Load();
     }
 
     public void StartTalk(int talkIndex)

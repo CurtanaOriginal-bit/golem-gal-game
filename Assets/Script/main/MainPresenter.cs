@@ -21,6 +21,7 @@ public class MainPresenter : MonoBehaviour
         mainView.OnSettingsClicked += HandleSettingsClicked;
         mainView.OnSettingsOpened += HandleSettingsOpened;
         mainView.OnTitleClicked += HandleTitleClicked;
+        mainView.OnEndingClicked += HandleEndingClicked;
         mainView.OnTalkButtonClicked += HandleTalkButtonClicked;
         mainView.OnTalkWindowClicked += HandleTalkWindowClicked;
         mainView.OnToggleOutfitClicked += HandleToggleOutfitClicked;
@@ -43,6 +44,7 @@ public class MainPresenter : MonoBehaviour
             mainView.OnSettingsClicked -= HandleSettingsClicked;
             mainView.OnSettingsOpened -= HandleSettingsOpened;
             mainView.OnTitleClicked -= HandleTitleClicked;
+            mainView.OnEndingClicked -= HandleEndingClicked;
             mainView.OnTalkButtonClicked -= HandleTalkButtonClicked;
             mainView.OnTalkWindowClicked -= HandleTalkWindowClicked;
             mainView.OnToggleOutfitClicked -= HandleToggleOutfitClicked;
@@ -85,6 +87,12 @@ public class MainPresenter : MonoBehaviour
     {
         mainView.StopLoopAnimation();
         mainModel.LoadTitleScene();
+    }
+
+    private void HandleEndingClicked()
+    {
+        mainView.StopLoopAnimation();
+        mainModel.LoadEndingScene();
     }
 
     private void HandleTalkButtonClicked(int index)
