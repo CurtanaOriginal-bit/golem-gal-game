@@ -31,10 +31,15 @@ public class MainView : ViewBase
     [SerializeField] private float animationFrameRate = 0.5f;
 
     [Header("Dressing/Stripping UI")]
-    [SerializeField] private Button toggleOutfitButton;
-    [SerializeField] private RawImage characterRawImage;
-    [SerializeField] private Texture2D clothedTexture;
-    [SerializeField] private Texture2D strippedTexture;
+    [SerializeField] private Button dressButton;
+    [SerializeField] private Button stripButton;
+    [SerializeField] private Button upperAreaButton;
+    [SerializeField] private Button lowerAreaButton;
+    [SerializeField] private RawImage characterRawImage; // ベース画像 (画像1)
+    [SerializeField] private RawImage layerUpperBack;    // 画像3 (上半分・背面)
+    [SerializeField] private RawImage layerUpperFront;   // 画像2 (上半分・前面)
+    [SerializeField] private RawImage layerLowerBack;    // 画像5 (下半分・背面)
+    [SerializeField] private RawImage layerLowerFront;   // 画像4 (下半分・前面)
 
     private SettingsView activeSettingsInstance;
     private TalkWindowView activeTalkWindowInstance;
@@ -52,7 +57,10 @@ public class MainView : ViewBase
     public event Action OnEndingClicked;
     public event Action<int> OnTalkButtonClicked;
     public event Action OnTalkWindowClicked;
-    public event Action OnToggleOutfitClicked;
+    public event Action OnDressClicked;
+    public event Action OnStripClicked;
+    public event Action OnUpperAreaClicked;
+    public event Action OnLowerAreaClicked;
     public event Action<int> OnLoopAnimationButtonClicked;
     
     // 設定画面が生成されたときにPresenterに通知するコールバック
@@ -99,13 +107,33 @@ public class MainView : ViewBase
         }
     }
 
+    private void Start()
+    {
+        ValidateAttachments();
+    }
+
+    private void ValidateAttachments()
+    {
+        if (dressButton == null) Debug.LogError("[MainView] dressButton がアタッチされていません。");
+        if (stripButton == null) Debug.LogError("[MainView] stripButton がアタッチされていません。");
+        if (upperAreaButton == null) Debug.LogError("[MainView] upperAreaButton がアタッチされていません。");
+        if (lowerAreaButton == null) Debug.LogError("[MainView] lowerAreaButton がアタッチされていません。");
+        if (layerUpperBack == null) Debug.LogError("[MainView] layerUpperBack (画像3) がアタッチされていません。");
+        if (layerUpperFront == null) Debug.LogError("[MainView] layerUpperFront (画像2) がアタッチされていません。");
+        if (layerLowerBack == null) Debug.LogError("[MainView] layerLowerBack (画像5) がアタッチされていません。");
+        if (layerLowerFront == null) Debug.LogError("[MainView] layerLowerFront (画像4) がアタッチされていません。");
+    }
+
     private void OnEnable()
     {
         RegisterContOpeButtons();
         if (settingsButton != null) settingsButton.onClick.AddListener(HandleSettingsClicked);
         if (titleButton != null) titleButton.onClick.AddListener(HandleTitleClicked);
         if (endingButton != null) endingButton.onClick.AddListener(HandleEndingClicked);
-        if (toggleOutfitButton != null) toggleOutfitButton.onClick.AddListener(HandleToggleOutfitClicked);
+        if (dressButton != null) dressButton.onClick.AddListener(HandleDressClicked);
+        if (stripButton != null) stripButton.onClick.AddListener(HandleStripClicked);
+        if (upperAreaButton != null) upperAreaButton.onClick.AddListener(HandleUpperAreaClicked);
+        if (lowerAreaButton != null) lowerAreaButton.onClick.AddListener(HandleLowerAreaClicked);
         
         if (talkButtons != null)
         {
@@ -138,7 +166,10 @@ public class MainView : ViewBase
         if (settingsButton != null) settingsButton.onClick.RemoveListener(HandleSettingsClicked);
         if (titleButton != null) titleButton.onClick.RemoveListener(HandleTitleClicked);
         if (endingButton != null) endingButton.onClick.RemoveListener(HandleEndingClicked);
-        if (toggleOutfitButton != null) toggleOutfitButton.onClick.RemoveListener(HandleToggleOutfitClicked);
+        if (dressButton != null) dressButton.onClick.RemoveListener(HandleDressClicked);
+        if (stripButton != null) stripButton.onClick.RemoveListener(HandleStripClicked);
+        if (upperAreaButton != null) upperAreaButton.onClick.RemoveListener(HandleUpperAreaClicked);
+        if (lowerAreaButton != null) lowerAreaButton.onClick.RemoveListener(HandleLowerAreaClicked);
         
         if (talkButtons != null)
         {
@@ -232,27 +263,30 @@ public class MainView : ViewBase
         }
     }
 
-    private void HandleToggleOutfitClicked() => OnToggleOutfitClicked?.Invoke();
+    private void HandleDressClicked() => OnDressClicked?.Invoke();
+    private void HandleStripClicked() => OnStripClicked?.Invoke();
+    private void HandleUpperAreaClicked() => OnUpperAreaClicked?.Invoke();
+    private void HandleLowerAreaClicked() => OnLowerAreaClicked?.Invoke();
 
-    public void SetOutfit(bool isStripped)
+    public void UpdateOutfitVisibility(bool upperBack, bool upperFront, bool lowerBack, bool lowerFront)
     {
-        if (characterRawImage == null)
-        {
-            Debug.LogWarning("[MainView] characterRawImage がアタッチされていません。");
-            return;
-        }
+        if (layerUpperBack != null) layerUpperBack.gameObject.SetActive(upperBack);
+        if (layerUpperFront != null) layerUpperFront.gameObject.SetActive(upperFront);
+        if (layerLowerBack != null) layerLowerBack.gameObject.SetActive(lowerBack);
+        if (layerLowerFront != null) layerLowerFront.gameObject.SetActive(lowerFront);
+    }
 
-        characterRawImage.gameObject.SetActive(true); // 確実に表示状態にする
+    public void SetControlModeUI(OutfitControlMode mode)
+    {
+        bool isEnabled = mode != OutfitControlMode.None;
+        if (upperAreaButton != null) upperAreaButton.interactable = isEnabled;
+        if (lowerAreaButton != null) lowerAreaButton.interactable = isEnabled;
 
-        Texture2D targetTexture = isStripped ? strippedTexture : clothedTexture;
-        if (targetTexture != null)
-        {
-            characterRawImage.texture = targetTexture;
-        }
-        else
-        {
-            Debug.LogWarning($"[MainView] {(isStripped ? "strippedTexture" : "clothedTexture")} がアタッチされていません。");
-        }
+        // 現在選択されているモードのボタンを無効化（視覚的なフィードバック）
+        if (dressButton != null) dressButton.interactable = (mode != OutfitControlMode.Dress);
+        if (stripButton != null) stripButton.interactable = (mode != OutfitControlMode.Strip);
+
+        Debug.Log($"[MainView] UI状態更新 - 操作有効: {isEnabled}, モード: {mode}");
     }
 
     private Coroutine _activeLoopCoroutine;

@@ -1,6 +1,13 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+public enum OutfitControlMode
+{
+    None,
+    Dress,
+    Strip
+}
+
 public class MainModel : MonoBehaviour
 {
     private const string MasterVolumeKey = "MasterVolume";
@@ -11,7 +18,15 @@ public class MainModel : MonoBehaviour
     public float BGMVolume { get; private set; }
     public float SEVolume { get; private set; }
 
-    public bool IsStripped { get; private set; }
+    // === Outfit State ===
+    public OutfitControlMode CurrentMode { get; private set; } = OutfitControlMode.None;
+    public bool UpperBackVisible { get; private set; } = true;  // 画像3
+    public bool UpperFrontVisible { get; private set; } = true; // 画像2
+    public bool LowerBackVisible { get; private set; } = true;  // 画像5
+    public bool LowerFrontVisible { get; private set; } = true; // 画像4
+
+    public event System.Action OnOutfitStateChanged;
+    public event System.Action<OutfitControlMode> OnControlModeChanged;
 
     // === Gauge Data ===
     public const float MaxGaugeValue = 100f;
@@ -133,10 +148,94 @@ public class MainModel : MonoBehaviour
         _currentSentenceIndex = -1;
     }
 
-    public void ToggleOutfit()
+    public void SetControlMode(OutfitControlMode mode)
     {
-        IsStripped = !IsStripped;
-        Debug.Log($"[MainModel] 衣装状態切り替え - IsStripped: {IsStripped}");
+        CurrentMode = mode;
+        Debug.Log($"[MainModel] 操作モード変更: {CurrentMode}");
+        OnOutfitStateChanged?.Invoke(); // 表示状態を更新させるため
+        OnControlModeChanged?.Invoke(CurrentMode);
+    }
+
+    public void ClickUpperArea()
+    {
+        if (CurrentMode == OutfitControlMode.None) return;
+
+        bool changed = false;
+        if (CurrentMode == OutfitControlMode.Dress)
+        {
+            // 着せる: 非表示のレイヤがあれば、下（背面）から表示
+            if (!UpperBackVisible)
+            {
+                UpperBackVisible = true;
+                changed = true;
+            }
+            else if (!UpperFrontVisible)
+            {
+                UpperFrontVisible = true;
+                changed = true;
+            }
+        }
+        else if (CurrentMode == OutfitControlMode.Strip)
+        {
+            // 脱がす: 表示されているレイヤがあれば、上（前面）から非表示
+            if (UpperFrontVisible)
+            {
+                UpperFrontVisible = false;
+                changed = true;
+            }
+            else if (UpperBackVisible)
+            {
+                UpperBackVisible = false;
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            Debug.Log($"[MainModel] 上半分レイヤ更新 - Back: {UpperBackVisible}, Front: {UpperFrontVisible}");
+            OnOutfitStateChanged?.Invoke();
+        }
+    }
+
+    public void ClickLowerArea()
+    {
+        if (CurrentMode == OutfitControlMode.None) return;
+
+        bool changed = false;
+        if (CurrentMode == OutfitControlMode.Dress)
+        {
+            // 着せる: 非表示のレイヤがあれば、下（背面）から表示
+            if (!LowerBackVisible)
+            {
+                LowerBackVisible = true;
+                changed = true;
+            }
+            else if (!LowerFrontVisible)
+            {
+                LowerFrontVisible = true;
+                changed = true;
+            }
+        }
+        else if (CurrentMode == OutfitControlMode.Strip)
+        {
+            // 脱がす: 表示されているレイヤがあれば、上（前面）から非表示
+            if (LowerFrontVisible)
+            {
+                LowerFrontVisible = false;
+                changed = true;
+            }
+            else if (LowerBackVisible)
+            {
+                LowerBackVisible = false;
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            Debug.Log($"[MainModel] 下半分レイヤ更新 - Back: {LowerBackVisible}, Front: {LowerFrontVisible}");
+            OnOutfitStateChanged?.Invoke();
+        }
     }
 
     public void InitializeGauges()

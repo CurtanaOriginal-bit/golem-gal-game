@@ -24,11 +24,18 @@ public class MainPresenter : MonoBehaviour
         mainView.OnEndingClicked += HandleEndingClicked;
         mainView.OnTalkButtonClicked += HandleTalkButtonClicked;
         mainView.OnTalkWindowClicked += HandleTalkWindowClicked;
-        mainView.OnToggleOutfitClicked += HandleToggleOutfitClicked;
+        mainView.OnDressClicked += HandleDressClicked;
+        mainView.OnStripClicked += HandleStripClicked;
+        mainView.OnUpperAreaClicked += HandleUpperAreaClicked;
+        mainView.OnLowerAreaClicked += HandleLowerAreaClicked;
         mainView.OnLoopAnimationButtonClicked += HandleLoopAnimationButtonClicked;
 
         // 初期衣装状態の反映
-        mainView.SetOutfit(mainModel.IsStripped);
+        mainView.UpdateOutfitVisibility(mainModel.UpperBackVisible, mainModel.UpperFrontVisible, mainModel.LowerBackVisible, mainModel.LowerFrontVisible);
+        mainView.SetControlModeUI(mainModel.CurrentMode);
+
+        mainModel.OnOutfitStateChanged += HandleOutfitStateChanged;
+        mainModel.OnControlModeChanged += HandleControlModeChanged;
 
         // ゲージの購読と初期化
         mainModel.OnGaugeChanged += HandleGaugeChanged;
@@ -47,7 +54,10 @@ public class MainPresenter : MonoBehaviour
             mainView.OnEndingClicked -= HandleEndingClicked;
             mainView.OnTalkButtonClicked -= HandleTalkButtonClicked;
             mainView.OnTalkWindowClicked -= HandleTalkWindowClicked;
-            mainView.OnToggleOutfitClicked -= HandleToggleOutfitClicked;
+            mainView.OnDressClicked -= HandleDressClicked;
+            mainView.OnStripClicked -= HandleStripClicked;
+            mainView.OnUpperAreaClicked -= HandleUpperAreaClicked;
+            mainView.OnLowerAreaClicked -= HandleLowerAreaClicked;
             mainView.OnLoopAnimationButtonClicked -= HandleLoopAnimationButtonClicked;
             mainView.OnAnyOpeButtonClicked -= HandleAnyOpeButtonClicked;
         }
@@ -55,6 +65,8 @@ public class MainPresenter : MonoBehaviour
         if (mainModel != null)
         {
             mainModel.OnGaugeChanged -= HandleGaugeChanged;
+            mainModel.OnOutfitStateChanged -= HandleOutfitStateChanged;
+            mainModel.OnControlModeChanged -= HandleControlModeChanged;
         }
     }
 
@@ -116,11 +128,41 @@ public class MainPresenter : MonoBehaviour
         }
     }
 
-    private void HandleToggleOutfitClicked()
+    private void HandleDressClicked()
     {
         mainView.StopLoopAnimation();
-        mainModel.ToggleOutfit();
-        mainView.SetOutfit(mainModel.IsStripped);
+        mainModel.SetControlMode(OutfitControlMode.Dress);
+    }
+
+    private void HandleStripClicked()
+    {
+        mainView.StopLoopAnimation();
+        mainModel.SetControlMode(OutfitControlMode.Strip);
+    }
+
+    private void HandleUpperAreaClicked()
+    {
+        mainModel.ClickUpperArea();
+    }
+
+    private void HandleLowerAreaClicked()
+    {
+        mainModel.ClickLowerArea();
+    }
+
+    private void HandleOutfitStateChanged()
+    {
+        mainView.UpdateOutfitVisibility(
+            mainModel.UpperBackVisible,
+            mainModel.UpperFrontVisible,
+            mainModel.LowerBackVisible,
+            mainModel.LowerFrontVisible
+        );
+    }
+
+    private void HandleControlModeChanged(OutfitControlMode mode)
+    {
+        mainView.SetControlModeUI(mode);
     }
 
     private void HandleLoopAnimationButtonClicked(int index)
