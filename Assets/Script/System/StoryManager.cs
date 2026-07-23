@@ -16,24 +16,46 @@ public class StoryManager : MonoBehaviour
 
     [SerializeField] private Button skipButton;
 
+    // シーン遷移用の暗転UI設定
+    [Header("Fade Settings")]
+    [SerializeField] private CanvasGroup fadeCanvasGroup;
+    [SerializeField] private float sceneChangeFadeDuration = 1.0f;
+
     public int storyIndex { get; private set; }
     public int textIndex { get; private set; }
 
-    // テキストがすべて表示されたかどうか
     private bool finishText = false;
+    private bool isTransitioning = false;
     private IEnumerator _typeSentence;
 
-    // クラス内のフィールド定義エリアに追加
-    [SerializeField] private string nextSceneName = "main_1"; // 遷移先のシーン名
+    [SerializeField] private string nextSceneName = "main_1";
 
     private void Start()
     {
+        // 1. 暗転パネルの初期化（非表示・透明にしておく）
+        if (fadeCanvasGroup != null)
+        {
+            fadeCanvasGroup.gameObject.SetActive(true);
+            fadeCanvasGroup.alpha = 0f;
+            fadeCanvasGroup.blocksRaycasts = false;
+        }
+
+        // 2. 画像の初期化（Inspectorにセットされているデフォルト画像を非表示にする）
+        if (background != null)
+        {
+            background.enabled = false;
+        }
+        if (characterImage != null)
+        {
+            characterImage.enabled = false;
+        }
+
+        // 3. 最初のセリフの読み込み（ここでデータがあれば表示される）
         SetStoryElement(storyIndex, textIndex);
     }
 
     private void OnEnable()
     {
-        // UIのイベント登録
         if (skipButton != null)
         {
             skipButton.onClick.AddListener(OnClickSkipButton);
@@ -42,7 +64,6 @@ public class StoryManager : MonoBehaviour
 
     private void OnDisable()
     {
-        // UIのイベント解除
         if (skipButton != null)
         {
             skipButton.onClick.RemoveListener(OnClickSkipButton);
@@ -51,6 +72,8 @@ public class StoryManager : MonoBehaviour
 
     private void Update()
     {
+        if (isTransitioning) return;
+
         bool isSpace = Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
         bool isEnter = Keyboard.current != null && Keyboard.current.enterKey.wasPressedThisFrame;
         bool isNumpadEnter = Keyboard.current != null && Keyboard.current.numpadEnterKey.wasPressedThisFrame;
@@ -60,13 +83,11 @@ public class StoryManager : MonoBehaviour
         {
             if (finishText)
             {
-                // 文字がすべて表示されているなら、次のセリフへ進む
                 textIndex++;
                 ProgressionStory(storyIndex);
             }
             else
             {
-                // まだ文字がタイピング途中なら、一瞬で全文字を表示する（スキップ）
                 SkipToFullText(storyIndex, textIndex);
             }
         }
@@ -77,31 +98,24 @@ public class StoryManager : MonoBehaviour
         var storyElement = storyDatas[_storyIndex].stories[_textIndex];
 
         // --- 背景画像の処理 ---
+        // データに新しい画像がある場合のみ更新（null なら前の背景画像をそのまま表示維持）
         if (storyElement.Background != null)
         {
-            background.enabled = true; // Imageコンポーネントを有効化
+            background.enabled = true;
             background.sprite = storyElement.Background;
         }
-        else
-        {
-            background.enabled = false; // データがない場合はImageを非表示にする
-            // もしくは、透明にしたい場合はこちら： background.sprite = null;
-        }
 
-        // --- キャラクター画像の処理（こちらも同様に対策しておくと安全です） ---
+        // --- キャラクター画像の処理 ---
+        // データに新しい画像がある場合のみ更新（null なら前のキャラ画像をそのまま表示維持）
         if (storyElement.CharacterImage != null)
         {
             characterImage.enabled = true;
             characterImage.sprite = storyElement.CharacterImage;
         }
-        else
-        {
-            characterImage.enabled = false; // キャラがいないセリフでは非表示
-        }
 
         characterName.text = storyElement.CharacterName;
 
-        // すでに動いているコルーチンがあれば、安全に停止させる
+        // テキストのタイピング表示
         if (_typeSentence != null)
         {
             StopCoroutine(_typeSentence);
@@ -115,42 +129,35 @@ public class StoryManager : MonoBehaviour
     {
         characterName.text = "";
 
-        // まだ現在のストーリーの中に次のセリフがある場合
         if (textIndex < storyDatas[_storyIndex].stories.Count)
         {
             SetStoryElement(_storyIndex, textIndex);
         }
         else
         {
-            // 次のストーリーデータ（章）へ進む
             textIndex = 0;
             storyIndex++;
 
-            // 次のストーリーデータが「まだ存在するか」をチェックする
             if (storyIndex < storyDatas.Length)
             {
-                // 次のデータがあるなら再生
                 SetStoryElement(storyIndex, textIndex);
             }
             else
             {
-                // すべてのストーリーが完全に終了した場合の処理
                 Debug.Log("【ゲーム終了】すべてのストーリーを読み終えました！");
 
-                // エラーでフリーズするのを防ぐため、インデックスを最後のセリフで止めておく
                 storyIndex = storyDatas.Length - 1;
                 textIndex = storyDatas[storyIndex].stories.Count - 1;
 
-                // TODO: ここに「タイトル画面に戻る」や「エンディングに移る」などの処理を書く
-                SceneManager.LoadScene(nextSceneName);
+                // 終了時は暗転を挟んでシーン遷移
+                StartCoroutine(FadeAndLoadScene());
             }
         }
     }
 
-    // 文字を1文字づつ表示するコルーチン
     private IEnumerator TypeSentence(int _storyIndex, int _textIndex)
     {
-        finishText = false; // タイピング開始なのでフラグをfalseに
+        finishText = false;
         storyText.text = "";
 
         foreach (var letter in storyDatas[_storyIndex].stories[_textIndex].StoryText.ToCharArray())
@@ -159,38 +166,52 @@ public class StoryManager : MonoBehaviour
             yield return new WaitForSeconds(0.05f);
         }
 
-        finishText = true; // 全部表示し終わったらtrueにする
+        finishText = true;
     }
 
-    // 文字を瞬間全表示するメソッド
     private void SkipToFullText(int _storyIndex, int _textIndex)
     {
-        // 動いているコルーチンを止める
         if (_typeSentence != null)
         {
             StopCoroutine(_typeSentence);
         }
 
-        // テキストデータの中身をそのまま全表示
         storyText.text = storyDatas[_storyIndex].stories[_textIndex].StoryText;
-
-        finishText = true; // 表示完了フラグを立てる
+        finishText = true;
     }
 
-
-    // --- 追加するメソッド ---
-    /// <summary>
-    /// スキップボタンから呼び出す処理
-    /// </summary>
     public void OnClickSkipButton()
     {
-        // タイピング中のコルーチンがあれば停止しておく
+        if (isTransitioning) return;
+
         if (_typeSentence != null)
         {
             StopCoroutine(_typeSentence);
         }
 
-        // "main" シーン（または Inspector で指定したシーン）へ遷移
+        StartCoroutine(FadeAndLoadScene());
+    }
+
+    // シーン遷移用の暗転処理
+    private IEnumerator FadeAndLoadScene()
+    {
+        isTransitioning = true;
+
+        if (fadeCanvasGroup != null)
+        {
+            fadeCanvasGroup.blocksRaycasts = true;
+            float elapsedTime = 0f;
+
+            while (elapsedTime < sceneChangeFadeDuration)
+            {
+                elapsedTime += Time.deltaTime;
+                fadeCanvasGroup.alpha = Mathf.Clamp01(elapsedTime / sceneChangeFadeDuration);
+                yield return null;
+            }
+
+            fadeCanvasGroup.alpha = 1f;
+        }
+
         SceneManager.LoadScene(nextSceneName);
     }
 }

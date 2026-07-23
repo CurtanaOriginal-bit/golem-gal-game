@@ -15,4 +15,9 @@ public class Story
     [TextArea]
     public string StoryText;
     public string CharacterName;
+
+    // --- 追加：このセリフの前に暗転を入れるかのフラグ ---
+    [Header("演出設定")]
+    [Tooltip("チェックを入れると、このセリフを表示する直前に画面を暗転させます")]
+    public bool isFadeIn;
 }
