@@ -39,6 +39,7 @@ public class MainPresenter : MonoBehaviour
 
         // ゲージの購読と初期化
         mainModel.OnGaugeChanged += HandleGaugeChanged;
+        mainModel.OnFaceChanged += HandleFaceChanged;
         mainView.OnAnyOpeButtonClicked += HandleAnyOpeButtonClicked;
         mainModel.InitializeGauges();
     }
@@ -65,6 +66,7 @@ public class MainPresenter : MonoBehaviour
         if (mainModel != null)
         {
             mainModel.OnGaugeChanged -= HandleGaugeChanged;
+            mainModel.OnFaceChanged -= HandleFaceChanged;
             mainModel.OnOutfitStateChanged -= HandleOutfitStateChanged;
             mainModel.OnControlModeChanged -= HandleControlModeChanged;
         }
@@ -178,5 +180,10 @@ public class MainPresenter : MonoBehaviour
     private void HandleGaugeChanged(float gauge1Value, float gauge2Value)
     {
         mainView.UpdateGaugeFill(gauge1Value / MainModel.MaxGaugeValue, gauge2Value / MainModel.MaxGaugeValue);
+    }
+
+    private void HandleFaceChanged(int faceIndex)
+    {
+        mainView.UpdateFace(faceIndex);
     }
 }

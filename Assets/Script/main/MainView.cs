@@ -41,6 +41,10 @@ public class MainView : ViewBase
     [SerializeField] private RawImage layerLowerBack;    // 画像5 (下半分・背面)
     [SerializeField] private RawImage layerLowerFront;   // 画像4 (下半分・前面)
 
+    [Header("Face Expression UI")]
+    [SerializeField] private RawImage characterFaceImage; // 表情画像 (顔部分の重ね合わせ、未設定の場合は characterRawImage を差し替える)
+    [SerializeField] private Texture2D[] faceTextures;   // 表情差分テクスチャ (0:元の表情, 1:差分1, 2:差分2, 3:差分3)
+
     private SettingsView activeSettingsInstance;
     private TalkWindowView activeTalkWindowInstance;
 
@@ -420,5 +424,39 @@ public class MainView : ViewBase
             gaugeInside2.fillAmount = gauge2FillAmount;
         }
         Debug.Log($"[MainView] ゲージ表示更新 - Gauge1: {gauge1FillAmount}, Gauge2: {gauge2FillAmount}");
+    }
+
+    public void UpdateFace(int faceIndex)
+    {
+        if (faceTextures == null || faceTextures.Length == 0)
+        {
+            Debug.LogWarning("[MainView] 表情テクスチャ(faceTextures)が設定されていません。");
+            return;
+        }
+
+        if (faceIndex < 0 || faceIndex >= faceTextures.Length)
+        {
+            Debug.LogWarning($"[MainView] 表情インデックスが範囲外です: {faceIndex} (配列数: {faceTextures.Length})");
+            return;
+        }
+
+        Texture2D nextTexture = faceTextures[faceIndex];
+        if (nextTexture == null)
+        {
+            Debug.LogWarning($"[MainView] 表情インデックス {faceIndex} のテクスチャが null です。");
+            return;
+        }
+
+        // 表情表示用RawImageがあればそれを更新、なければベース画像を更新
+        RawImage targetImage = (characterFaceImage != null) ? characterFaceImage : characterRawImage;
+        if (targetImage != null)
+        {
+            targetImage.texture = nextTexture;
+            Debug.Log($"[MainView] 表情更新: インデックス {faceIndex} (適用先: {targetImage.gameObject.name})");
+        }
+        else
+        {
+            Debug.LogWarning("[MainView] 表情適用先(characterFaceImage/characterRawImage)がありません。");
+        }
     }
 }

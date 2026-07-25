@@ -34,6 +34,10 @@ public class MainModel : MonoBehaviour
     public float Gauge2Value { get; private set; }
     public event System.Action<float, float> OnGaugeChanged;
 
+    // === Face Expression ===
+    public int CurrentFaceIndex { get; private set; } = 0;
+    public event System.Action<int> OnFaceChanged;
+
     private SceneLoader _titleSceneLoader;
     private SceneLoader _endingSceneLoader;
 
@@ -238,12 +242,33 @@ public class MainModel : MonoBehaviour
         }
     }
 
+    private int CalculateFaceIndex(float gauge1Value)
+    {
+        if (gauge1Value >= 80f) return 3;
+        if (gauge1Value >= 50f) return 2;
+        if (gauge1Value >= 20f) return 1;
+        return 0;
+    }
+
+    private void UpdateFaceExpression()
+    {
+        int newIndex = CalculateFaceIndex(Gauge1Value);
+        if (newIndex != CurrentFaceIndex)
+        {
+            CurrentFaceIndex = newIndex;
+            Debug.Log($"[MainModel] 表情変更: {CurrentFaceIndex} (Gauge1: {Gauge1Value})");
+            OnFaceChanged?.Invoke(CurrentFaceIndex);
+        }
+    }
+
     public void InitializeGauges()
     {
         Gauge1Value = 0f;
         Gauge2Value = 0f;
         OnGaugeChanged?.Invoke(Gauge1Value, Gauge2Value);
         Debug.Log($"[MainModel] ゲージ初期化 - Gauge1: {Gauge1Value}, Gauge2: {Gauge2Value}");
+        CurrentFaceIndex = CalculateFaceIndex(Gauge1Value);
+        OnFaceChanged?.Invoke(CurrentFaceIndex);
     }
 
     public void IncreaseGauge1(float amount)
@@ -251,6 +276,7 @@ public class MainModel : MonoBehaviour
         Gauge1Value = Mathf.Clamp(Gauge1Value + amount, 0f, MaxGaugeValue);
         OnGaugeChanged?.Invoke(Gauge1Value, Gauge2Value);
         Debug.Log($"[MainModel] Gauge1増加: {Gauge1Value}/{MaxGaugeValue}");
+        UpdateFaceExpression();
     }
 
     // === インナークラス定義 ===
