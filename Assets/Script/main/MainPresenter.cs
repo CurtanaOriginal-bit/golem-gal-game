@@ -24,6 +24,7 @@ public class MainPresenter : MonoBehaviour
         mainView.OnEndingClicked += HandleEndingClicked;
         mainView.OnTalkButtonClicked += HandleTalkButtonClicked;
         mainView.OnTalkWindowClicked += HandleTalkWindowClicked;
+        mainView.OnAutoTalkToggleChanged += HandleAutoTalkToggleChanged;
         mainView.OnDressClicked += HandleDressClicked;
         mainView.OnStripClicked += HandleStripClicked;
         mainView.OnUpperAreaClicked += HandleUpperAreaClicked;
@@ -55,6 +56,7 @@ public class MainPresenter : MonoBehaviour
             mainView.OnEndingClicked -= HandleEndingClicked;
             mainView.OnTalkButtonClicked -= HandleTalkButtonClicked;
             mainView.OnTalkWindowClicked -= HandleTalkWindowClicked;
+            mainView.OnAutoTalkToggleChanged -= HandleAutoTalkToggleChanged;
             mainView.OnDressClicked -= HandleDressClicked;
             mainView.OnStripClicked -= HandleStripClicked;
             mainView.OnUpperAreaClicked -= HandleUpperAreaClicked;
@@ -113,12 +115,60 @@ public class MainPresenter : MonoBehaviour
     {
         mainView.StopLoopAnimation();
         mainModel.StartTalk(index);
+        _autoTalkTimer = 0f;
         string text = mainModel.GetCurrentSentence();
         mainView.OpenTalkWindow(text);
+
+        // ボタンがフォーカスされたままだとEnter/Spaceキーで再クリックされてしまうためフォーカスを外す
+        if (UnityEngine.EventSystems.EventSystem.current != null)
+        {
+            UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(null);
+        }
+    }
+
+    private float _autoTalkTimer = 0f;
+
+    private void Update()
+    {
+        if (mainModel.IsTalking)
+        {
+            if (mainModel.IsAutoTalkMode)
+            {
+                _autoTalkTimer += Time.deltaTime;
+                if (_autoTalkTimer >= mainModel.AutoTalkInterval)
+                {
+                    AdvanceTalk();
+                }
+            }
+
+            if (UnityEngine.InputSystem.Keyboard.current != null)
+            {
+                if (UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame || 
+                    UnityEngine.InputSystem.Keyboard.current.enterKey.wasPressedThisFrame)
+                {
+                    AdvanceTalk();
+                }
+            }
+        }
+        else
+        {
+            _autoTalkTimer = 0f;
+        }
+    }
+
+    private void HandleAutoTalkToggleChanged(bool isOn)
+    {
+        mainModel.IsAutoTalkMode = isOn;
     }
 
     private void HandleTalkWindowClicked()
     {
+        AdvanceTalk();
+    }
+
+    private void AdvanceTalk()
+    {
+        _autoTalkTimer = 0f;
         if (mainModel.AdvanceSentence())
         {
             string text = mainModel.GetCurrentSentence();

@@ -10,6 +10,7 @@ public class MainView : ViewBase
     [SerializeField] private Button endingButton;
 
     [Header("Talk UI")]
+    [SerializeField] private UnityEngine.UI.Toggle autoTalkToggle;
     [SerializeField] private Button[] talkButtons;
     [SerializeField] private TalkWindowView talkWindowPrefab;
 
@@ -61,6 +62,7 @@ public class MainView : ViewBase
     public event Action OnEndingClicked;
     public event Action<int> OnTalkButtonClicked;
     public event Action OnTalkWindowClicked;
+    public event Action<bool> OnAutoTalkToggleChanged;
     public event Action OnDressClicked;
     public event Action OnStripClicked;
     public event Action OnUpperAreaClicked;
@@ -151,6 +153,11 @@ public class MainView : ViewBase
             }
         }
 
+        if (autoTalkToggle != null)
+        {
+            autoTalkToggle.onValueChanged.AddListener(isOn => OnAutoTalkToggleChanged?.Invoke(isOn));
+        }
+
         if (loopAnimations != null)
         {
             for (int i = 0; i < loopAnimations.Length; i++)
@@ -184,6 +191,11 @@ public class MainView : ViewBase
                     talkButtons[i].onClick.RemoveAllListeners();
                 }
             }
+        }
+
+        if (autoTalkToggle != null)
+        {
+            autoTalkToggle.onValueChanged.RemoveAllListeners();
         }
 
         if (loopAnimations != null)

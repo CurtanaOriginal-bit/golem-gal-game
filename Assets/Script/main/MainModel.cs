@@ -52,11 +52,15 @@ public class MainModel : MonoBehaviour
 
     [Header("Talk Settings")]
     [SerializeField] private TalkGroup[] talkGroups;
+    [SerializeField] private bool isAutoTalkMode = false;
+    [SerializeField] private float autoTalkInterval = 2.0f;
 
     private int _currentTalkIndex = -1;
     private int _currentSentenceIndex = -1;
 
     public bool IsTalking => _currentTalkIndex >= 0;
+    public bool IsAutoTalkMode { get => isAutoTalkMode; set => isAutoTalkMode = value; }
+    public float AutoTalkInterval => autoTalkInterval;
 
     private void Awake()
     {
