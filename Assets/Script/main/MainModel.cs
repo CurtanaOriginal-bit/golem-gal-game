@@ -1,6 +1,13 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
+public enum OutfitControlMode
+{
+    None,
+    Dress,
+    Strip
+}
+
 public class MainModel : MonoBehaviour
 {
     private const string MasterVolumeKey = "MasterVolume";
@@ -11,7 +18,28 @@ public class MainModel : MonoBehaviour
     public float BGMVolume { get; private set; }
     public float SEVolume { get; private set; }
 
+    // === Outfit State ===
+    public OutfitControlMode CurrentMode { get; private set; } = OutfitControlMode.None;
+    public bool UpperBackVisible { get; private set; } = true;  // 画像3
+    public bool UpperFrontVisible { get; private set; } = true; // 画像2
+    public bool LowerBackVisible { get; private set; } = true;  // 画像5
+    public bool LowerFrontVisible { get; private set; } = true; // 画像4
+
+    public event System.Action OnOutfitStateChanged;
+    public event System.Action<OutfitControlMode> OnControlModeChanged;
+
+    // === Gauge Data ===
+    public const float MaxGaugeValue = 100f;
+    public float Gauge1Value { get; private set; }
+    public float Gauge2Value { get; private set; }
+    public event System.Action<float, float> OnGaugeChanged;
+
+    // === Face Expression ===
+    public int CurrentFaceIndex { get; private set; } = 0;
+    public event System.Action<int> OnFaceChanged;
+
     private SceneLoader _titleSceneLoader;
+    private SceneLoader _endingSceneLoader;
 
     [System.Serializable]
     public class TalkGroup
@@ -24,15 +52,20 @@ public class MainModel : MonoBehaviour
 
     [Header("Talk Settings")]
     [SerializeField] private TalkGroup[] talkGroups;
+    [SerializeField] private bool isAutoTalkMode = false;
+    [SerializeField] private float autoTalkInterval = 2.0f;
 
     private int _currentTalkIndex = -1;
     private int _currentSentenceIndex = -1;
 
     public bool IsTalking => _currentTalkIndex >= 0;
+    public bool IsAutoTalkMode { get => isAutoTalkMode; set => isAutoTalkMode = value; }
+    public float AutoTalkInterval => autoTalkInterval;
 
     private void Awake()
     {
         _titleSceneLoader = new SceneLoader("Title");
+        _endingSceneLoader = new SceneLoader("Ending");
     }
 
     public void LoadSettings()
@@ -78,6 +111,11 @@ public class MainModel : MonoBehaviour
         _titleSceneLoader.Load();
     }
 
+    public void LoadEndingScene()
+    {
+        _endingSceneLoader.Load();
+    }
+
     public void StartTalk(int talkIndex)
     {
         if (talkGroups == null || talkIndex < 0 || talkIndex >= talkGroups.Length) return;
@@ -116,6 +154,133 @@ public class MainModel : MonoBehaviour
         Debug.Log($"[MainModel] 会話終了 - TalkIndex: {_currentTalkIndex}");
         _currentTalkIndex = -1;
         _currentSentenceIndex = -1;
+    }
+
+    public void SetControlMode(OutfitControlMode mode)
+    {
+        CurrentMode = mode;
+        Debug.Log($"[MainModel] 操作モード変更: {CurrentMode}");
+        OnOutfitStateChanged?.Invoke(); // 表示状態を更新させるため
+        OnControlModeChanged?.Invoke(CurrentMode);
+    }
+
+    public void ClickUpperArea()
+    {
+        if (CurrentMode == OutfitControlMode.None) return;
+
+        bool changed = false;
+        if (CurrentMode == OutfitControlMode.Dress)
+        {
+            // 着せる: 非表示のレイヤがあれば、下（背面）から表示
+            if (!UpperBackVisible)
+            {
+                UpperBackVisible = true;
+                changed = true;
+            }
+            else if (!UpperFrontVisible)
+            {
+                UpperFrontVisible = true;
+                changed = true;
+            }
+        }
+        else if (CurrentMode == OutfitControlMode.Strip)
+        {
+            // 脱がす: 表示されているレイヤがあれば、上（前面）から非表示
+            if (UpperFrontVisible)
+            {
+                UpperFrontVisible = false;
+                changed = true;
+            }
+            else if (UpperBackVisible)
+            {
+                UpperBackVisible = false;
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            Debug.Log($"[MainModel] 上半分レイヤ更新 - Back: {UpperBackVisible}, Front: {UpperFrontVisible}");
+            OnOutfitStateChanged?.Invoke();
+        }
+    }
+
+    public void ClickLowerArea()
+    {
+        if (CurrentMode == OutfitControlMode.None) return;
+
+        bool changed = false;
+        if (CurrentMode == OutfitControlMode.Dress)
+        {
+            // 着せる: 非表示のレイヤがあれば、下（背面）から表示
+            if (!LowerBackVisible)
+            {
+                LowerBackVisible = true;
+                changed = true;
+            }
+            else if (!LowerFrontVisible)
+            {
+                LowerFrontVisible = true;
+                changed = true;
+            }
+        }
+        else if (CurrentMode == OutfitControlMode.Strip)
+        {
+            // 脱がす: 表示されているレイヤがあれば、上（前面）から非表示
+            if (LowerFrontVisible)
+            {
+                LowerFrontVisible = false;
+                changed = true;
+            }
+            else if (LowerBackVisible)
+            {
+                LowerBackVisible = false;
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            Debug.Log($"[MainModel] 下半分レイヤ更新 - Back: {LowerBackVisible}, Front: {LowerFrontVisible}");
+            OnOutfitStateChanged?.Invoke();
+        }
+    }
+
+    private int CalculateFaceIndex(float gauge1Value)
+    {
+        if (gauge1Value >= 80f) return 3;
+        if (gauge1Value >= 50f) return 2;
+        if (gauge1Value >= 20f) return 1;
+        return 0;
+    }
+
+    private void UpdateFaceExpression()
+    {
+        int newIndex = CalculateFaceIndex(Gauge1Value);
+        if (newIndex != CurrentFaceIndex)
+        {
+            CurrentFaceIndex = newIndex;
+            Debug.Log($"[MainModel] 表情変更: {CurrentFaceIndex} (Gauge1: {Gauge1Value})");
+            OnFaceChanged?.Invoke(CurrentFaceIndex);
+        }
+    }
+
+    public void InitializeGauges()
+    {
+        Gauge1Value = 0f;
+        Gauge2Value = 0f;
+        OnGaugeChanged?.Invoke(Gauge1Value, Gauge2Value);
+        Debug.Log($"[MainModel] ゲージ初期化 - Gauge1: {Gauge1Value}, Gauge2: {Gauge2Value}");
+        CurrentFaceIndex = CalculateFaceIndex(Gauge1Value);
+        OnFaceChanged?.Invoke(CurrentFaceIndex);
+    }
+
+    public void IncreaseGauge1(float amount)
+    {
+        Gauge1Value = Mathf.Clamp(Gauge1Value + amount, 0f, MaxGaugeValue);
+        OnGaugeChanged?.Invoke(Gauge1Value, Gauge2Value);
+        Debug.Log($"[MainModel] Gauge1増加: {Gauge1Value}/{MaxGaugeValue}");
+        UpdateFaceExpression();
     }
 
     // === インナークラス定義 ===

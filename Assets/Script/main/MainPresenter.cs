@@ -21,8 +21,28 @@ public class MainPresenter : MonoBehaviour
         mainView.OnSettingsClicked += HandleSettingsClicked;
         mainView.OnSettingsOpened += HandleSettingsOpened;
         mainView.OnTitleClicked += HandleTitleClicked;
+        mainView.OnEndingClicked += HandleEndingClicked;
         mainView.OnTalkButtonClicked += HandleTalkButtonClicked;
         mainView.OnTalkWindowClicked += HandleTalkWindowClicked;
+        mainView.OnAutoTalkToggleChanged += HandleAutoTalkToggleChanged;
+        mainView.OnDressClicked += HandleDressClicked;
+        mainView.OnStripClicked += HandleStripClicked;
+        mainView.OnUpperAreaClicked += HandleUpperAreaClicked;
+        mainView.OnLowerAreaClicked += HandleLowerAreaClicked;
+        mainView.OnLoopAnimationButtonClicked += HandleLoopAnimationButtonClicked;
+
+        // 初期衣装状態の反映
+        mainView.UpdateOutfitVisibility(mainModel.UpperBackVisible, mainModel.UpperFrontVisible, mainModel.LowerBackVisible, mainModel.LowerFrontVisible);
+        mainView.SetControlModeUI(mainModel.CurrentMode);
+
+        mainModel.OnOutfitStateChanged += HandleOutfitStateChanged;
+        mainModel.OnControlModeChanged += HandleControlModeChanged;
+
+        // ゲージの購読と初期化
+        mainModel.OnGaugeChanged += HandleGaugeChanged;
+        mainModel.OnFaceChanged += HandleFaceChanged;
+        mainView.OnAnyOpeButtonClicked += HandleAnyOpeButtonClicked;
+        mainModel.InitializeGauges();
     }
 
     private void OnDisable()
@@ -33,13 +53,30 @@ public class MainPresenter : MonoBehaviour
             mainView.OnSettingsClicked -= HandleSettingsClicked;
             mainView.OnSettingsOpened -= HandleSettingsOpened;
             mainView.OnTitleClicked -= HandleTitleClicked;
+            mainView.OnEndingClicked -= HandleEndingClicked;
             mainView.OnTalkButtonClicked -= HandleTalkButtonClicked;
             mainView.OnTalkWindowClicked -= HandleTalkWindowClicked;
+            mainView.OnAutoTalkToggleChanged -= HandleAutoTalkToggleChanged;
+            mainView.OnDressClicked -= HandleDressClicked;
+            mainView.OnStripClicked -= HandleStripClicked;
+            mainView.OnUpperAreaClicked -= HandleUpperAreaClicked;
+            mainView.OnLowerAreaClicked -= HandleLowerAreaClicked;
+            mainView.OnLoopAnimationButtonClicked -= HandleLoopAnimationButtonClicked;
+            mainView.OnAnyOpeButtonClicked -= HandleAnyOpeButtonClicked;
+        }
+
+        if (mainModel != null)
+        {
+            mainModel.OnGaugeChanged -= HandleGaugeChanged;
+            mainModel.OnFaceChanged -= HandleFaceChanged;
+            mainModel.OnOutfitStateChanged -= HandleOutfitStateChanged;
+            mainModel.OnControlModeChanged -= HandleControlModeChanged;
         }
     }
 
     private void HandleSettingsClicked()
     {
+        mainView.StopLoopAnimation();
         mainView.OpenSettings();
     }
 
@@ -64,18 +101,74 @@ public class MainPresenter : MonoBehaviour
 
     private void HandleTitleClicked()
     {
+        mainView.StopLoopAnimation();
         mainModel.LoadTitleScene();
+    }
+
+    private void HandleEndingClicked()
+    {
+        mainView.StopLoopAnimation();
+        mainModel.LoadEndingScene();
     }
 
     private void HandleTalkButtonClicked(int index)
     {
+        mainView.StopLoopAnimation();
         mainModel.StartTalk(index);
+        _autoTalkTimer = 0f;
         string text = mainModel.GetCurrentSentence();
         mainView.OpenTalkWindow(text);
+
+        // ボタンがフォーカスされたままだとEnter/Spaceキーで再クリックされてしまうためフォーカスを外す
+        if (UnityEngine.EventSystems.EventSystem.current != null)
+        {
+            UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(null);
+        }
+    }
+
+    private float _autoTalkTimer = 0f;
+
+    private void Update()
+    {
+        if (mainModel.IsTalking)
+        {
+            if (mainModel.IsAutoTalkMode)
+            {
+                _autoTalkTimer += Time.deltaTime;
+                if (_autoTalkTimer >= mainModel.AutoTalkInterval)
+                {
+                    AdvanceTalk();
+                }
+            }
+
+            if (UnityEngine.InputSystem.Keyboard.current != null)
+            {
+                if (UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame || 
+                    UnityEngine.InputSystem.Keyboard.current.enterKey.wasPressedThisFrame)
+                {
+                    AdvanceTalk();
+                }
+            }
+        }
+        else
+        {
+            _autoTalkTimer = 0f;
+        }
+    }
+
+    private void HandleAutoTalkToggleChanged(bool isOn)
+    {
+        mainModel.IsAutoTalkMode = isOn;
     }
 
     private void HandleTalkWindowClicked()
     {
+        AdvanceTalk();
+    }
+
+    private void AdvanceTalk()
+    {
+        _autoTalkTimer = 0f;
         if (mainModel.AdvanceSentence())
         {
             string text = mainModel.GetCurrentSentence();
@@ -85,5 +178,62 @@ public class MainPresenter : MonoBehaviour
         {
             mainView.CloseTalkWindow();
         }
+    }
+
+    private void HandleDressClicked()
+    {
+        mainView.StopLoopAnimation();
+        mainModel.SetControlMode(OutfitControlMode.Dress);
+    }
+
+    private void HandleStripClicked()
+    {
+        mainView.StopLoopAnimation();
+        mainModel.SetControlMode(OutfitControlMode.Strip);
+    }
+
+    private void HandleUpperAreaClicked()
+    {
+        mainModel.ClickUpperArea();
+    }
+
+    private void HandleLowerAreaClicked()
+    {
+        mainModel.ClickLowerArea();
+    }
+
+    private void HandleOutfitStateChanged()
+    {
+        mainView.UpdateOutfitVisibility(
+            mainModel.UpperBackVisible,
+            mainModel.UpperFrontVisible,
+            mainModel.LowerBackVisible,
+            mainModel.LowerFrontVisible
+        );
+    }
+
+    private void HandleControlModeChanged(OutfitControlMode mode)
+    {
+        mainView.SetControlModeUI(mode);
+    }
+
+    private void HandleLoopAnimationButtonClicked(int index)
+    {
+        mainView.PlayLoopAnimation(index);
+    }
+
+    private void HandleAnyOpeButtonClicked()
+    {
+        mainModel.IncreaseGauge1(10f);
+    }
+
+    private void HandleGaugeChanged(float gauge1Value, float gauge2Value)
+    {
+        mainView.UpdateGaugeFill(gauge1Value / MainModel.MaxGaugeValue, gauge2Value / MainModel.MaxGaugeValue);
+    }
+
+    private void HandleFaceChanged(int faceIndex)
+    {
+        mainView.UpdateFace(faceIndex);
     }
 }
