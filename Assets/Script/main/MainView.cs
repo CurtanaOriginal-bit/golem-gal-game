@@ -116,6 +116,12 @@ public class MainView : ViewBase
     private void Start()
     {
         ValidateAttachments();
+
+        // UIのToggle初期値をイベントとして通知し、Modelと同期させる
+        if (autoTalkToggle != null)
+        {
+            OnAutoTalkToggleChanged?.Invoke(autoTalkToggle.isOn);
+        }
     }
 
     private void ValidateAttachments()
