@@ -592,7 +592,10 @@ MonoBehaviour:
   layerLowerBack: {fileID: 86840748}
   layerLowerFront: {fileID: 157148149}
   characterFaceImage: {fileID: 0}
-  faceTextures: []
+  faceTextures:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   gaugeInside1: {fileID: 0}
   gaugeInside2: {fileID: 0}
   contOpeTransform: {fileID: 0}
@@ -680,7 +683,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &86840747
 RectTransform:
   m_ObjectHideFlags: 0
@@ -698,7 +701,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 500, y: 700}
+  m_SizeDelta: {x: 500, y: 682}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &86840748
 MonoBehaviour:
@@ -770,7 +773,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 500, y: 700}
+  m_SizeDelta: {x: 500, y: 682}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &157148149
 MonoBehaviour:
@@ -792,7 +795,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: 1a9561bb74ad5b04285fa662b47b9ffe, type: 3}
+  m_Texture: {fileID: 2800000, guid: 9dfa2990fc362aa4ba4c8098ea810ee4, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -2106,7 +2109,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 500, y: 700}
+  m_SizeDelta: {x: 500, y: 682}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &436876302
 MonoBehaviour:
@@ -2121,7 +2124,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.RawImage
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2855,7 +2858,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 500, y: 700}
+  m_SizeDelta: {x: 500, y: 682}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &585485022
 MonoBehaviour:
@@ -6298,7 +6301,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 500, y: 700}
+  m_SizeDelta: {x: 500, y: 682}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1325931377
 MonoBehaviour:
