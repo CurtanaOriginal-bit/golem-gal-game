@@ -9,6 +9,9 @@ public class MainView : ViewBase
     [SerializeField] private Button titleButton;
     [SerializeField] private Button endingButton;
 
+    [Header("Cancel UI")]
+    [SerializeField] private Button cancelButton;
+
     [Header("Talk UI")]
     [SerializeField] private UnityEngine.UI.Toggle autoTalkToggle;
     [SerializeField] private Button[] talkButtons;
@@ -19,10 +22,17 @@ public class MainView : ViewBase
     [SerializeField] private RectTransform canvasTransform;
 
     [System.Serializable]
+    public struct ScreenAnimationData
+    {
+        public RawImage targetScreen; // 表示先スクリーン
+        public Texture2D[] textures; // そのスクリーンで再生する画像
+    }
+
+    [System.Serializable]
     public struct LoopAnimationData
     {
         public Button button;
-        public Texture2D[] textures;
+        public ScreenAnimationData[] screenAnimations; // スクリーンと画像のペア
         public bool isLoop; // ループ再生するかどうか
     }
 
@@ -60,6 +70,7 @@ public class MainView : ViewBase
     public event Action OnSettingsClicked;
     public event Action OnTitleClicked;
     public event Action OnEndingClicked;
+    public event Action OnCancelClicked;
     public event Action<int> OnTalkButtonClicked;
     public event Action OnTalkWindowClicked;
     public event Action<bool> OnAutoTalkToggleChanged;
@@ -142,6 +153,7 @@ public class MainView : ViewBase
         if (settingsButton != null) settingsButton.onClick.AddListener(HandleSettingsClicked);
         if (titleButton != null) titleButton.onClick.AddListener(HandleTitleClicked);
         if (endingButton != null) endingButton.onClick.AddListener(HandleEndingClicked);
+        if (cancelButton != null) cancelButton.onClick.AddListener(HandleCancelClicked);
         if (dressButton != null) dressButton.onClick.AddListener(HandleDressClicked);
         if (stripButton != null) stripButton.onClick.AddListener(HandleStripClicked);
         if (upperAreaButton != null) upperAreaButton.onClick.AddListener(HandleUpperAreaClicked);
@@ -183,6 +195,7 @@ public class MainView : ViewBase
         if (settingsButton != null) settingsButton.onClick.RemoveListener(HandleSettingsClicked);
         if (titleButton != null) titleButton.onClick.RemoveListener(HandleTitleClicked);
         if (endingButton != null) endingButton.onClick.RemoveListener(HandleEndingClicked);
+        if (cancelButton != null) cancelButton.onClick.RemoveListener(HandleCancelClicked);
         if (dressButton != null) dressButton.onClick.RemoveListener(HandleDressClicked);
         if (stripButton != null) stripButton.onClick.RemoveListener(HandleStripClicked);
         if (upperAreaButton != null) upperAreaButton.onClick.RemoveListener(HandleUpperAreaClicked);
@@ -221,6 +234,8 @@ public class MainView : ViewBase
     private void HandleTitleClicked() => OnTitleClicked?.Invoke();
 
     private void HandleEndingClicked() => OnEndingClicked?.Invoke();
+
+    private void HandleCancelClicked() => OnCancelClicked?.Invoke();
 
     private void HandleTalkWindowClicked() => OnTalkWindowClicked?.Invoke();
 
@@ -329,10 +344,7 @@ public class MainView : ViewBase
 
         if (loopAnimations == null || index < 0 || index >= loopAnimations.Length) return;
         var animData = loopAnimations[index];
-        if (animData.textures == null || animData.textures.Length == 0) return;
-
-        RawImage targetImage = animationRawImage != null ? animationRawImage : characterRawImage;
-        if (targetImage == null) return;
+        if (animData.screenAnimations == null || animData.screenAnimations.Length == 0) return;
 
         // 別のボタンが押された（または新規起動）の場合
         if (index != _activeAnimationIndex)
@@ -341,13 +353,20 @@ public class MainView : ViewBase
             _activeAnimationIndex = index;
             _currentAnimationIndices[index] = 0; // 1枚目から開始
 
-            targetImage.gameObject.SetActive(true);
-            targetImage.texture = animData.textures[0];
+            foreach (var sa in animData.screenAnimations)
+            {
+                RawImage img = sa.targetScreen != null ? sa.targetScreen : (animationRawImage != null ? animationRawImage : characterRawImage);
+                if (img != null && sa.textures != null && sa.textures.Length > 0)
+                {
+                    img.gameObject.SetActive(true);
+                    img.texture = sa.textures[0];
+                }
+            }
 
             if (animData.isLoop)
             {
                 // ループアニメーションなら自動再生を開始
-                _activeLoopCoroutine = StartCoroutine(CoLoopAnimation(animData.textures, targetImage));
+                _activeLoopCoroutine = StartCoroutine(CoLoopAnimation(animData.screenAnimations));
             }
         }
         else
@@ -356,29 +375,45 @@ public class MainView : ViewBase
             if (!animData.isLoop)
             {
                 // ループなしの場合は、手動で次の画像に進める（コマ送り）
-                int nextIndex = (_currentAnimationIndices[index] + 1) % animData.textures.Length;
+                int nextIndex = _currentAnimationIndices[index] + 1;
                 _currentAnimationIndices[index] = nextIndex;
-                targetImage.texture = animData.textures[nextIndex];
+                
+                foreach (var sa in animData.screenAnimations)
+                {
+                    RawImage img = sa.targetScreen != null ? sa.targetScreen : (animationRawImage != null ? animationRawImage : characterRawImage);
+                    if (img != null && sa.textures != null && sa.textures.Length > 0)
+                    {
+                        img.texture = sa.textures[nextIndex % sa.textures.Length];
+                    }
+                }
             }
             // ループありの場合は、既に自動再生コルーチンが走っているので何もしない
         }
     }
 
-    private System.Collections.IEnumerator CoLoopAnimation(Texture2D[] textures, RawImage targetImage)
+    private System.Collections.IEnumerator CoLoopAnimation(ScreenAnimationData[] screenAnimations)
     {
-        int index = 0;
+        int frameIndex = 0;
         while (true)
         {
             yield return new WaitForSeconds(animationFrameRate);
-            index = (index + 1) % textures.Length;
-            if (targetImage != null)
+            frameIndex++;
+            
+            if (screenAnimations != null)
             {
-                targetImage.texture = textures[index];
+                foreach (var sa in screenAnimations)
+                {
+                    RawImage img = sa.targetScreen != null ? sa.targetScreen : (animationRawImage != null ? animationRawImage : characterRawImage);
+                    if (img != null && sa.textures != null && sa.textures.Length > 0)
+                    {
+                        img.texture = sa.textures[frameIndex % sa.textures.Length];
+                    }
+                }
             }
             
             if (_activeAnimationIndex >= 0 && _currentAnimationIndices != null && _activeAnimationIndex < _currentAnimationIndices.Length)
             {
-                _currentAnimationIndices[_activeAnimationIndex] = index;
+                _currentAnimationIndices[_activeAnimationIndex] = frameIndex;
             }
         }
     }
@@ -389,6 +424,18 @@ public class MainView : ViewBase
         {
             StopCoroutine(_activeLoopCoroutine);
             _activeLoopCoroutine = null;
+        }
+
+        if (_activeAnimationIndex >= 0 && loopAnimations != null && _activeAnimationIndex < loopAnimations.Length)
+        {
+            var animData = loopAnimations[_activeAnimationIndex];
+            if (animData.screenAnimations != null)
+            {
+                foreach (var sa in animData.screenAnimations)
+                {
+                    if (sa.targetScreen != null) sa.targetScreen.gameObject.SetActive(false);
+                }
+            }
         }
 
         _activeAnimationIndex = -1; // アクティブ状態をリセット

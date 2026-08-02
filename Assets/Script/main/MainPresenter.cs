@@ -22,6 +22,7 @@ public class MainPresenter : MonoBehaviour
         mainView.OnSettingsOpened += HandleSettingsOpened;
         mainView.OnTitleClicked += HandleTitleClicked;
         mainView.OnEndingClicked += HandleEndingClicked;
+        mainView.OnCancelClicked += HandleCancelClicked;
         mainView.OnTalkButtonClicked += HandleTalkButtonClicked;
         mainView.OnTalkWindowClicked += HandleTalkWindowClicked;
         mainView.OnAutoTalkToggleChanged += HandleAutoTalkToggleChanged;
@@ -54,6 +55,7 @@ public class MainPresenter : MonoBehaviour
             mainView.OnSettingsOpened -= HandleSettingsOpened;
             mainView.OnTitleClicked -= HandleTitleClicked;
             mainView.OnEndingClicked -= HandleEndingClicked;
+            mainView.OnCancelClicked -= HandleCancelClicked;
             mainView.OnTalkButtonClicked -= HandleTalkButtonClicked;
             mainView.OnTalkWindowClicked -= HandleTalkWindowClicked;
             mainView.OnAutoTalkToggleChanged -= HandleAutoTalkToggleChanged;
@@ -109,6 +111,12 @@ public class MainPresenter : MonoBehaviour
     {
         mainView.StopLoopAnimation();
         mainModel.LoadEndingScene();
+    }
+
+    private void HandleCancelClicked()
+    {
+        // 進行中のアニメーションのみを強制的に終了・非表示にする
+        mainView.StopLoopAnimation();
     }
 
     private void HandleTalkButtonClicked(int index)
