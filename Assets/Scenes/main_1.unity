@@ -529,6 +529,9 @@ MonoBehaviour:
   settingsPrefab: {fileID: 3892931784425845479, guid: d05ee27a3c90dfb4cb3f5dc75107a681, type: 3}
   canvasTransform: {fileID: 40577212}
   animationRawImage: {fileID: 0}
+  managedSubScreens:
+  - {fileID: 1170180995}
+  - {fileID: 1544804989}
   loopAnimations:
   - button: {fileID: 593551105}
     screenAnimations:
@@ -539,7 +542,29 @@ MonoBehaviour:
       textures:
       - {fileID: 2800000, guid: 770f80cca52a96a419d41415d23571bd, type: 3}
     isLoop: 0
+  - button: {fileID: 1226077714}
+    screenAnimations:
+    - targetScreen: {fileID: 1170180995}
+      textures:
+      - {fileID: 2800000, guid: c5d5e9479f763b04382b5ad3e9cde3bc, type: 3}
+    isLoop: 0
+  - button: {fileID: 1902056888}
+    screenAnimations:
+    - targetScreen: {fileID: 1544804989}
+      textures:
+      - {fileID: 2800000, guid: f787da87c0e4094448c11e367c04e7b1, type: 3}
+    - targetScreen: {fileID: 1170180995}
+      textures:
+      - {fileID: 2800000, guid: c5d5e9479f763b04382b5ad3e9cde3bc, type: 3}
+    isLoop: 0
   animationFrameRate: 0.5
+  subScreenToggles:
+  - triggerButton: {fileID: 1226077714}
+    targetToEnable: {fileID: 1170180995}
+    targetToDisable: {fileID: 1544804989}
+  - triggerButton: {fileID: 1902056888}
+    targetToEnable: {fileID: 1544804989}
+    targetToDisable: {fileID: 1170180995}
   dressButton: {fileID: 953559424}
   stripButton: {fileID: 32800481}
   upperAreaButton: {fileID: 734159533}
@@ -638,7 +663,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &42539779
 RectTransform:
   m_ObjectHideFlags: 0
@@ -673,7 +698,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 42539778}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
   m_Name: 
@@ -5626,7 +5651,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1170180992
 RectTransform:
   m_ObjectHideFlags: 0
@@ -5661,7 +5686,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1170180991}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
   m_Name: 
@@ -5674,7 +5699,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: c5d5e9479f763b04382b5ad3e9cde3bc, type: 3}
+  m_Texture: {fileID: 0}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -8151,7 +8176,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1544804988
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8178,7 +8203,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1544804987}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
   m_Name: 
@@ -8191,7 +8216,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: f787da87c0e4094448c11e367c04e7b1, type: 3}
+  m_Texture: {fileID: 0}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -8630,7 +8655,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1703479848
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8665,7 +8690,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1703479847}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1344c3c82d62a2a41a3576d8abb8e3ea, type: 3}
   m_Name: 

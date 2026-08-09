@@ -38,8 +38,20 @@ public class MainView : ViewBase
 
     [Header("Loop Animation UI")]
     [SerializeField] private RawImage animationRawImage;
+    [SerializeField] private RawImage[] managedSubScreens; // 排他表示制御するためのサブスクリーン一覧
     [SerializeField] private LoopAnimationData[] loopAnimations;
     [SerializeField] private float animationFrameRate = 0.5f;
+
+    [System.Serializable]
+    public struct SubScreenToggleData
+    {
+        public Button triggerButton;     // 押下するボタン
+        public RawImage targetToEnable;  // オン(チェックを入れる)にするRawImage
+        public RawImage targetToDisable; // オフ(チェックを外す)にするRawImage
+    }
+
+    [Header("Exclusive Sub Screen Toggles")]
+    [SerializeField] private SubScreenToggleData[] subScreenToggles; // ボタン押下時の強制トグル設定
 
     [Header("Dressing/Stripping UI")]
     [SerializeField] private Button dressButton;
@@ -187,6 +199,23 @@ public class MainView : ViewBase
                 }
             }
         }
+
+        if (subScreenToggles != null)
+        {
+            foreach (var toggle in subScreenToggles)
+            {
+                if (toggle.triggerButton != null)
+                {
+                    var captureToggle = toggle;
+                    captureToggle.triggerButton.onClick.AddListener(() =>
+                    {
+                        if (captureToggle.targetToEnable != null) captureToggle.targetToEnable.enabled = true;
+                        if (captureToggle.targetToDisable != null) captureToggle.targetToDisable.enabled = false;
+                        Debug.Log($"[MainView] サブスクリーンの強制トグルを実行: {captureToggle.targetToEnable?.gameObject.name} をON, {captureToggle.targetToDisable?.gameObject.name} をOFF");
+                    });
+                }
+            }
+        }
     }
 
     private void OnDisable()
@@ -224,6 +253,17 @@ public class MainView : ViewBase
                 if (loopAnimations[i].button != null)
                 {
                     loopAnimations[i].button.onClick.RemoveAllListeners();
+                }
+            }
+        }
+
+        if (subScreenToggles != null)
+        {
+            foreach (var toggle in subScreenToggles)
+            {
+                if (toggle.triggerButton != null)
+                {
+                    toggle.triggerButton.onClick.RemoveAllListeners();
                 }
             }
         }
@@ -358,7 +398,7 @@ public class MainView : ViewBase
                 RawImage img = sa.targetScreen != null ? sa.targetScreen : (animationRawImage != null ? animationRawImage : characterRawImage);
                 if (img != null && sa.textures != null && sa.textures.Length > 0)
                 {
-                    img.gameObject.SetActive(true);
+                    img.enabled = true; // GameObjectのActive切り替えから、RawImageのenabled切り替えに変更
                     img.texture = sa.textures[0];
                 }
             }
@@ -426,14 +466,26 @@ public class MainView : ViewBase
             _activeLoopCoroutine = null;
         }
 
-        if (_activeAnimationIndex >= 0 && loopAnimations != null && _activeAnimationIndex < loopAnimations.Length)
+        // 明示的に登録されたサブスクリーンをすべて確実に非表示（排他表示）にする
+        if (managedSubScreens != null)
         {
-            var animData = loopAnimations[_activeAnimationIndex];
-            if (animData.screenAnimations != null)
+            foreach (var screen in managedSubScreens)
             {
-                foreach (var sa in animData.screenAnimations)
+                if (screen != null) screen.enabled = false;
+            }
+        }
+
+        // すべてのアニメーションスクリーンを一旦確実に非表示にする
+        if (loopAnimations != null)
+        {
+            foreach (var animData in loopAnimations)
+            {
+                if (animData.screenAnimations != null)
                 {
-                    if (sa.targetScreen != null) sa.targetScreen.gameObject.SetActive(false);
+                    foreach (var sa in animData.screenAnimations)
+                    {
+                        if (sa.targetScreen != null) sa.targetScreen.enabled = false;
+                    }
                 }
             }
         }
@@ -443,7 +495,7 @@ public class MainView : ViewBase
         // アニメーション専用のRawImageがある場合のみ非表示にする
         if (animationRawImage != null)
         {
-            animationRawImage.gameObject.SetActive(false);
+            animationRawImage.enabled = false;
         }
     }
 
