@@ -71,12 +71,24 @@ public class MainView : ViewBase
     private SettingsView activeSettingsInstance;
     private TalkWindowView activeTalkWindowInstance;
 
+    [System.Serializable]
+    public struct GaugeIncreaseData
+    {
+        public Button button;
+        public float increaseAmount;
+    }
+
+    [Header("Order Penetration UI")]
+    [SerializeField] private Button orderPenetrationButton;
+
     [Header("Gauge UI")]
     [SerializeField] private Image gaugeInside1;
     [SerializeField] private Image gaugeInside2;
     [SerializeField] private Transform contOpeTransform;
+    [SerializeField] private float defaultGaugeIncreaseAmount = 10f;
+    [SerializeField] private GaugeIncreaseData[] customGaugeIncreaseButtons;
 
-    public event Action OnAnyOpeButtonClicked;
+    public event Action<float> OnOpeButtonClicked;
 
     // Presenterが登録するコールバック
     public event Action OnSettingsClicked;
@@ -501,33 +513,63 @@ public class MainView : ViewBase
 
     private void RegisterContOpeButtons()
     {
-        if (contOpeTransform == null)
+        if (contOpeTransform != null)
         {
-            Debug.LogWarning("[MainView] contOpeTransform がアタッチされていないため、ボタンの監視ができません。");
-            return;
+            Button[] buttons = contOpeTransform.GetComponentsInChildren<Button>(true);
+            foreach (var btn in buttons)
+            {
+                float amount = defaultGaugeIncreaseAmount;
+                if (customGaugeIncreaseButtons != null)
+                {
+                    foreach (var customData in customGaugeIncreaseButtons)
+                    {
+                        if (customData.button == btn)
+                        {
+                            amount = customData.increaseAmount;
+                            break;
+                        }
+                    }
+                }
+                var currentAmount = amount;
+                btn.onClick.AddListener(() => OnOpeButtonClicked?.Invoke(currentAmount));
+            }
+            Debug.Log($"[MainView] Cont_ope内の {buttons.Length} 個のボタンにゲージ増加イベントを登録しました。");
         }
 
-        Button[] buttons = contOpeTransform.GetComponentsInChildren<Button>(true);
-        foreach (var btn in buttons)
+        if (customGaugeIncreaseButtons != null)
         {
-            btn.onClick.AddListener(HandleAnyOpeButtonClicked);
+            foreach (var customData in customGaugeIncreaseButtons)
+            {
+                if (customData.button != null && (contOpeTransform == null || !customData.button.transform.IsChildOf(contOpeTransform)))
+                {
+                    var currentAmount = customData.increaseAmount;
+                    customData.button.onClick.AddListener(() => OnOpeButtonClicked?.Invoke(currentAmount));
+                }
+            }
         }
-        Debug.Log($"[MainView] Cont_ope内の {buttons.Length} 個のボタンにゲージ増加イベントを登録しました。");
     }
 
     private void UnregisterContOpeButtons()
     {
-        if (contOpeTransform == null) return;
-        Button[] buttons = contOpeTransform.GetComponentsInChildren<Button>(true);
-        foreach (var btn in buttons)
+        if (contOpeTransform != null)
         {
-            btn.onClick.RemoveListener(HandleAnyOpeButtonClicked);
+            Button[] buttons = contOpeTransform.GetComponentsInChildren<Button>(true);
+            foreach (var btn in buttons)
+            {
+                btn.onClick.RemoveAllListeners();
+            }
         }
-    }
 
-    private void HandleAnyOpeButtonClicked()
-    {
-        OnAnyOpeButtonClicked?.Invoke();
+        if (customGaugeIncreaseButtons != null)
+        {
+            foreach (var customData in customGaugeIncreaseButtons)
+            {
+                if (customData.button != null)
+                {
+                    customData.button.onClick.RemoveAllListeners();
+                }
+            }
+        }
     }
 
     public void UpdateGaugeFill(float gauge1FillAmount, float gauge2FillAmount)
@@ -541,6 +583,18 @@ public class MainView : ViewBase
             gaugeInside2.fillAmount = gauge2FillAmount;
         }
         Debug.Log($"[MainView] ゲージ表示更新 - Gauge1: {gauge1FillAmount}, Gauge2: {gauge2FillAmount}");
+    }
+
+    /// <summary>
+    /// Order_Penetrationボタン（挿入ボタン）の有効/無効を切り替えます
+    /// </summary>
+    /// <param name="isInteractable">有効にする場合は true</param>
+    public void SetOrderPenetrationInteractable(bool isInteractable)
+    {
+        if (orderPenetrationButton != null)
+        {
+            orderPenetrationButton.interactable = isInteractable;
+        }
     }
 
     public void UpdateFace(int faceIndex)

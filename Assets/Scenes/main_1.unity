@@ -576,9 +576,30 @@ MonoBehaviour:
   layerLowerFront: {fileID: 157148149}
   characterFaceImage: {fileID: 0}
   faceTextures: []
+  orderPenetrationButton: {fileID: 1902056888}
   gaugeInside1: {fileID: 0}
   gaugeInside2: {fileID: 0}
   contOpeTransform: {fileID: 0}
+  defaultGaugeIncreaseAmount: 0
+  customGaugeIncreaseButtons:
+  - button: {fileID: 1581837502}
+    increaseAmount: 20
+  - button: {fileID: 165415210}
+    increaseAmount: 20
+  - button: {fileID: 421188808}
+    increaseAmount: 10
+  - button: {fileID: 1392306409}
+    increaseAmount: 10
+  - button: {fileID: 1228252022}
+    increaseAmount: 20
+  - button: {fileID: 1466760605}
+    increaseAmount: 20
+  - button: {fileID: 593551105}
+    increaseAmount: 20
+  - button: {fileID: 1226268222}
+    increaseAmount: 20
+  - button: {fileID: 293054094}
+    increaseAmount: 20
 --- !u!114 &40577214
 MonoBehaviour:
   m_ObjectHideFlags: 0

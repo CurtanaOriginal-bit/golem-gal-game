@@ -42,7 +42,7 @@ public class MainPresenter : MonoBehaviour
         // ゲージの購読と初期化
         mainModel.OnGaugeChanged += HandleGaugeChanged;
         mainModel.OnFaceChanged += HandleFaceChanged;
-        mainView.OnAnyOpeButtonClicked += HandleAnyOpeButtonClicked;
+        mainView.OnOpeButtonClicked += HandleOpeButtonClicked;
         mainModel.InitializeGauges();
     }
 
@@ -64,7 +64,7 @@ public class MainPresenter : MonoBehaviour
             mainView.OnUpperAreaClicked -= HandleUpperAreaClicked;
             mainView.OnLowerAreaClicked -= HandleLowerAreaClicked;
             mainView.OnLoopAnimationButtonClicked -= HandleLoopAnimationButtonClicked;
-            mainView.OnAnyOpeButtonClicked -= HandleAnyOpeButtonClicked;
+            mainView.OnOpeButtonClicked -= HandleOpeButtonClicked;
         }
 
         if (mainModel != null)
@@ -230,14 +230,17 @@ public class MainPresenter : MonoBehaviour
         mainView.PlayLoopAnimation(index);
     }
 
-    private void HandleAnyOpeButtonClicked()
+    private void HandleOpeButtonClicked(float amount)
     {
-        mainModel.IncreaseGauge1(10f);
+        mainModel.IncreaseGauge1(amount);
     }
 
     private void HandleGaugeChanged(float gauge1Value, float gauge2Value)
     {
         mainView.UpdateGaugeFill(gauge1Value / MainModel.MaxGaugeValue, gauge2Value / MainModel.MaxGaugeValue);
+
+        // ゲージ1(gauge_outside1)が60以上の場合のみOrder_Penetrationボタンを有効化する
+        mainView.SetOrderPenetrationInteractable(gauge1Value >= 60f);
     }
 
     private void HandleFaceChanged(int faceIndex)
