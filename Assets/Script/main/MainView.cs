@@ -87,8 +87,10 @@ public class MainView : ViewBase
     [SerializeField] private Transform contOpeTransform;
     [SerializeField] private float defaultGaugeIncreaseAmount = 10f;
     [SerializeField] private GaugeIncreaseData[] customGaugeIncreaseButtons;
+    [SerializeField] private GaugeIncreaseData[] customGauge2IncreaseButtons;
 
     public event Action<float> OnOpeButtonClicked;
+    public event Action<float> OnGauge2IncreaseButtonClicked;
 
     // Presenterが登録するコールバック
     public event Action OnSettingsClicked;
@@ -547,6 +549,18 @@ public class MainView : ViewBase
                 }
             }
         }
+
+        if (customGauge2IncreaseButtons != null)
+        {
+            foreach (var customData in customGauge2IncreaseButtons)
+            {
+                if (customData.button != null)
+                {
+                    var currentAmount = customData.increaseAmount;
+                    customData.button.onClick.AddListener(() => OnGauge2IncreaseButtonClicked?.Invoke(currentAmount));
+                }
+            }
+        }
     }
 
     private void UnregisterContOpeButtons()
@@ -563,6 +577,17 @@ public class MainView : ViewBase
         if (customGaugeIncreaseButtons != null)
         {
             foreach (var customData in customGaugeIncreaseButtons)
+            {
+                if (customData.button != null)
+                {
+                    customData.button.onClick.RemoveAllListeners();
+                }
+            }
+        }
+
+        if (customGauge2IncreaseButtons != null)
+        {
+            foreach (var customData in customGauge2IncreaseButtons)
             {
                 if (customData.button != null)
                 {
