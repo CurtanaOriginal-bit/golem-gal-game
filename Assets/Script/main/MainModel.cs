@@ -283,6 +283,13 @@ public class MainModel : MonoBehaviour
         UpdateFaceExpression();
     }
 
+    public void IncreaseGauge2(float amount)
+    {
+        Gauge2Value = Mathf.Clamp(Gauge2Value + amount, 0f, MaxGaugeValue);
+        OnGaugeChanged?.Invoke(Gauge1Value, Gauge2Value);
+        Debug.Log($"[MainModel] Gauge2増加: {Gauge2Value}/{MaxGaugeValue}");
+    }
+
     // === インナークラス定義 ===
     private class SceneLoader
     {

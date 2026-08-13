@@ -9,6 +9,9 @@ public class MainView : ViewBase
     [SerializeField] private Button titleButton;
     [SerializeField] private Button endingButton;
 
+    [Header("Cancel UI")]
+    [SerializeField] private Button cancelButton;
+
     [Header("Talk UI")]
     [SerializeField] private UnityEngine.UI.Toggle autoTalkToggle;
     [SerializeField] private Button[] talkButtons;
@@ -19,17 +22,36 @@ public class MainView : ViewBase
     [SerializeField] private RectTransform canvasTransform;
 
     [System.Serializable]
+    public struct ScreenAnimationData
+    {
+        public RawImage targetScreen; // 表示先スクリーン
+        public Texture2D[] textures; // そのスクリーンで再生する画像
+    }
+
+    [System.Serializable]
     public struct LoopAnimationData
     {
         public Button button;
-        public Texture2D[] textures;
+        public ScreenAnimationData[] screenAnimations; // スクリーンと画像のペア
         public bool isLoop; // ループ再生するかどうか
     }
 
     [Header("Loop Animation UI")]
     [SerializeField] private RawImage animationRawImage;
+    [SerializeField] private RawImage[] managedSubScreens; // 排他表示制御するためのサブスクリーン一覧
     [SerializeField] private LoopAnimationData[] loopAnimations;
     [SerializeField] private float animationFrameRate = 0.5f;
+
+    [System.Serializable]
+    public struct SubScreenToggleData
+    {
+        public Button triggerButton;     // 押下するボタン
+        public RawImage targetToEnable;  // オン(チェックを入れる)にするRawImage
+        public RawImage targetToDisable; // オフ(チェックを外す)にするRawImage
+    }
+
+    [Header("Exclusive Sub Screen Toggles")]
+    [SerializeField] private SubScreenToggleData[] subScreenToggles; // ボタン押下時の強制トグル設定
 
     [Header("Dressing/Stripping UI")]
     [SerializeField] private Button dressButton;
@@ -49,17 +71,32 @@ public class MainView : ViewBase
     private SettingsView activeSettingsInstance;
     private TalkWindowView activeTalkWindowInstance;
 
+    [System.Serializable]
+    public struct GaugeIncreaseData
+    {
+        public Button button;
+        public float increaseAmount;
+    }
+
+    [Header("Order Penetration UI")]
+    [SerializeField] private Button orderPenetrationButton;
+
     [Header("Gauge UI")]
     [SerializeField] private Image gaugeInside1;
     [SerializeField] private Image gaugeInside2;
     [SerializeField] private Transform contOpeTransform;
+    [SerializeField] private float defaultGaugeIncreaseAmount = 10f;
+    [SerializeField] private GaugeIncreaseData[] customGaugeIncreaseButtons;
+    [SerializeField] private GaugeIncreaseData[] customGauge2IncreaseButtons;
 
-    public event Action OnAnyOpeButtonClicked;
+    public event Action<float> OnOpeButtonClicked;
+    public event Action<float> OnGauge2IncreaseButtonClicked;
 
     // Presenterが登録するコールバック
     public event Action OnSettingsClicked;
     public event Action OnTitleClicked;
     public event Action OnEndingClicked;
+    public event Action OnCancelClicked;
     public event Action<int> OnTalkButtonClicked;
     public event Action OnTalkWindowClicked;
     public event Action<bool> OnAutoTalkToggleChanged;
@@ -142,6 +179,7 @@ public class MainView : ViewBase
         if (settingsButton != null) settingsButton.onClick.AddListener(HandleSettingsClicked);
         if (titleButton != null) titleButton.onClick.AddListener(HandleTitleClicked);
         if (endingButton != null) endingButton.onClick.AddListener(HandleEndingClicked);
+        if (cancelButton != null) cancelButton.onClick.AddListener(HandleCancelClicked);
         if (dressButton != null) dressButton.onClick.AddListener(HandleDressClicked);
         if (stripButton != null) stripButton.onClick.AddListener(HandleStripClicked);
         if (upperAreaButton != null) upperAreaButton.onClick.AddListener(HandleUpperAreaClicked);
@@ -175,6 +213,23 @@ public class MainView : ViewBase
                 }
             }
         }
+
+        if (subScreenToggles != null)
+        {
+            foreach (var toggle in subScreenToggles)
+            {
+                if (toggle.triggerButton != null)
+                {
+                    var captureToggle = toggle;
+                    captureToggle.triggerButton.onClick.AddListener(() =>
+                    {
+                        if (captureToggle.targetToEnable != null) captureToggle.targetToEnable.enabled = true;
+                        if (captureToggle.targetToDisable != null) captureToggle.targetToDisable.enabled = false;
+                        Debug.Log($"[MainView] サブスクリーンの強制トグルを実行: {captureToggle.targetToEnable?.gameObject.name} をON, {captureToggle.targetToDisable?.gameObject.name} をOFF");
+                    });
+                }
+            }
+        }
     }
 
     private void OnDisable()
@@ -183,6 +238,7 @@ public class MainView : ViewBase
         if (settingsButton != null) settingsButton.onClick.RemoveListener(HandleSettingsClicked);
         if (titleButton != null) titleButton.onClick.RemoveListener(HandleTitleClicked);
         if (endingButton != null) endingButton.onClick.RemoveListener(HandleEndingClicked);
+        if (cancelButton != null) cancelButton.onClick.RemoveListener(HandleCancelClicked);
         if (dressButton != null) dressButton.onClick.RemoveListener(HandleDressClicked);
         if (stripButton != null) stripButton.onClick.RemoveListener(HandleStripClicked);
         if (upperAreaButton != null) upperAreaButton.onClick.RemoveListener(HandleUpperAreaClicked);
@@ -214,6 +270,17 @@ public class MainView : ViewBase
                 }
             }
         }
+
+        if (subScreenToggles != null)
+        {
+            foreach (var toggle in subScreenToggles)
+            {
+                if (toggle.triggerButton != null)
+                {
+                    toggle.triggerButton.onClick.RemoveAllListeners();
+                }
+            }
+        }
     }
 
     private void HandleSettingsClicked() => OnSettingsClicked?.Invoke();
@@ -221,6 +288,8 @@ public class MainView : ViewBase
     private void HandleTitleClicked() => OnTitleClicked?.Invoke();
 
     private void HandleEndingClicked() => OnEndingClicked?.Invoke();
+
+    private void HandleCancelClicked() => OnCancelClicked?.Invoke();
 
     private void HandleTalkWindowClicked() => OnTalkWindowClicked?.Invoke();
 
@@ -329,10 +398,7 @@ public class MainView : ViewBase
 
         if (loopAnimations == null || index < 0 || index >= loopAnimations.Length) return;
         var animData = loopAnimations[index];
-        if (animData.textures == null || animData.textures.Length == 0) return;
-
-        RawImage targetImage = animationRawImage != null ? animationRawImage : characterRawImage;
-        if (targetImage == null) return;
+        if (animData.screenAnimations == null || animData.screenAnimations.Length == 0) return;
 
         // 別のボタンが押された（または新規起動）の場合
         if (index != _activeAnimationIndex)
@@ -341,13 +407,20 @@ public class MainView : ViewBase
             _activeAnimationIndex = index;
             _currentAnimationIndices[index] = 0; // 1枚目から開始
 
-            targetImage.gameObject.SetActive(true);
-            targetImage.texture = animData.textures[0];
+            foreach (var sa in animData.screenAnimations)
+            {
+                RawImage img = sa.targetScreen != null ? sa.targetScreen : (animationRawImage != null ? animationRawImage : characterRawImage);
+                if (img != null && sa.textures != null && sa.textures.Length > 0)
+                {
+                    img.enabled = true; // GameObjectのActive切り替えから、RawImageのenabled切り替えに変更
+                    img.texture = sa.textures[0];
+                }
+            }
 
             if (animData.isLoop)
             {
                 // ループアニメーションなら自動再生を開始
-                _activeLoopCoroutine = StartCoroutine(CoLoopAnimation(animData.textures, targetImage));
+                _activeLoopCoroutine = StartCoroutine(CoLoopAnimation(animData.screenAnimations));
             }
         }
         else
@@ -356,29 +429,45 @@ public class MainView : ViewBase
             if (!animData.isLoop)
             {
                 // ループなしの場合は、手動で次の画像に進める（コマ送り）
-                int nextIndex = (_currentAnimationIndices[index] + 1) % animData.textures.Length;
+                int nextIndex = _currentAnimationIndices[index] + 1;
                 _currentAnimationIndices[index] = nextIndex;
-                targetImage.texture = animData.textures[nextIndex];
+                
+                foreach (var sa in animData.screenAnimations)
+                {
+                    RawImage img = sa.targetScreen != null ? sa.targetScreen : (animationRawImage != null ? animationRawImage : characterRawImage);
+                    if (img != null && sa.textures != null && sa.textures.Length > 0)
+                    {
+                        img.texture = sa.textures[nextIndex % sa.textures.Length];
+                    }
+                }
             }
             // ループありの場合は、既に自動再生コルーチンが走っているので何もしない
         }
     }
 
-    private System.Collections.IEnumerator CoLoopAnimation(Texture2D[] textures, RawImage targetImage)
+    private System.Collections.IEnumerator CoLoopAnimation(ScreenAnimationData[] screenAnimations)
     {
-        int index = 0;
+        int frameIndex = 0;
         while (true)
         {
             yield return new WaitForSeconds(animationFrameRate);
-            index = (index + 1) % textures.Length;
-            if (targetImage != null)
+            frameIndex++;
+            
+            if (screenAnimations != null)
             {
-                targetImage.texture = textures[index];
+                foreach (var sa in screenAnimations)
+                {
+                    RawImage img = sa.targetScreen != null ? sa.targetScreen : (animationRawImage != null ? animationRawImage : characterRawImage);
+                    if (img != null && sa.textures != null && sa.textures.Length > 0)
+                    {
+                        img.texture = sa.textures[frameIndex % sa.textures.Length];
+                    }
+                }
             }
             
             if (_activeAnimationIndex >= 0 && _currentAnimationIndices != null && _activeAnimationIndex < _currentAnimationIndices.Length)
             {
-                _currentAnimationIndices[_activeAnimationIndex] = index;
+                _currentAnimationIndices[_activeAnimationIndex] = frameIndex;
             }
         }
     }
@@ -391,44 +480,121 @@ public class MainView : ViewBase
             _activeLoopCoroutine = null;
         }
 
+        // 明示的に登録されたサブスクリーンをすべて確実に非表示（排他表示）にする
+        if (managedSubScreens != null)
+        {
+            foreach (var screen in managedSubScreens)
+            {
+                if (screen != null) screen.enabled = false;
+            }
+        }
+
+        // すべてのアニメーションスクリーンを一旦確実に非表示にする
+        if (loopAnimations != null)
+        {
+            foreach (var animData in loopAnimations)
+            {
+                if (animData.screenAnimations != null)
+                {
+                    foreach (var sa in animData.screenAnimations)
+                    {
+                        if (sa.targetScreen != null) sa.targetScreen.enabled = false;
+                    }
+                }
+            }
+        }
+
         _activeAnimationIndex = -1; // アクティブ状態をリセット
 
         // アニメーション専用のRawImageがある場合のみ非表示にする
         if (animationRawImage != null)
         {
-            animationRawImage.gameObject.SetActive(false);
+            animationRawImage.enabled = false;
         }
     }
 
     private void RegisterContOpeButtons()
     {
-        if (contOpeTransform == null)
+        if (contOpeTransform != null)
         {
-            Debug.LogWarning("[MainView] contOpeTransform がアタッチされていないため、ボタンの監視ができません。");
-            return;
+            Button[] buttons = contOpeTransform.GetComponentsInChildren<Button>(true);
+            foreach (var btn in buttons)
+            {
+                float amount = defaultGaugeIncreaseAmount;
+                if (customGaugeIncreaseButtons != null)
+                {
+                    foreach (var customData in customGaugeIncreaseButtons)
+                    {
+                        if (customData.button == btn)
+                        {
+                            amount = customData.increaseAmount;
+                            break;
+                        }
+                    }
+                }
+                var currentAmount = amount;
+                btn.onClick.AddListener(() => OnOpeButtonClicked?.Invoke(currentAmount));
+            }
+            Debug.Log($"[MainView] Cont_ope内の {buttons.Length} 個のボタンにゲージ増加イベントを登録しました。");
         }
 
-        Button[] buttons = contOpeTransform.GetComponentsInChildren<Button>(true);
-        foreach (var btn in buttons)
+        if (customGaugeIncreaseButtons != null)
         {
-            btn.onClick.AddListener(HandleAnyOpeButtonClicked);
+            foreach (var customData in customGaugeIncreaseButtons)
+            {
+                if (customData.button != null && (contOpeTransform == null || !customData.button.transform.IsChildOf(contOpeTransform)))
+                {
+                    var currentAmount = customData.increaseAmount;
+                    customData.button.onClick.AddListener(() => OnOpeButtonClicked?.Invoke(currentAmount));
+                }
+            }
         }
-        Debug.Log($"[MainView] Cont_ope内の {buttons.Length} 個のボタンにゲージ増加イベントを登録しました。");
+
+        if (customGauge2IncreaseButtons != null)
+        {
+            foreach (var customData in customGauge2IncreaseButtons)
+            {
+                if (customData.button != null)
+                {
+                    var currentAmount = customData.increaseAmount;
+                    customData.button.onClick.AddListener(() => OnGauge2IncreaseButtonClicked?.Invoke(currentAmount));
+                }
+            }
+        }
     }
 
     private void UnregisterContOpeButtons()
     {
-        if (contOpeTransform == null) return;
-        Button[] buttons = contOpeTransform.GetComponentsInChildren<Button>(true);
-        foreach (var btn in buttons)
+        if (contOpeTransform != null)
         {
-            btn.onClick.RemoveListener(HandleAnyOpeButtonClicked);
+            Button[] buttons = contOpeTransform.GetComponentsInChildren<Button>(true);
+            foreach (var btn in buttons)
+            {
+                btn.onClick.RemoveAllListeners();
+            }
         }
-    }
 
-    private void HandleAnyOpeButtonClicked()
-    {
-        OnAnyOpeButtonClicked?.Invoke();
+        if (customGaugeIncreaseButtons != null)
+        {
+            foreach (var customData in customGaugeIncreaseButtons)
+            {
+                if (customData.button != null)
+                {
+                    customData.button.onClick.RemoveAllListeners();
+                }
+            }
+        }
+
+        if (customGauge2IncreaseButtons != null)
+        {
+            foreach (var customData in customGauge2IncreaseButtons)
+            {
+                if (customData.button != null)
+                {
+                    customData.button.onClick.RemoveAllListeners();
+                }
+            }
+        }
     }
 
     public void UpdateGaugeFill(float gauge1FillAmount, float gauge2FillAmount)
@@ -442,6 +608,18 @@ public class MainView : ViewBase
             gaugeInside2.fillAmount = gauge2FillAmount;
         }
         Debug.Log($"[MainView] ゲージ表示更新 - Gauge1: {gauge1FillAmount}, Gauge2: {gauge2FillAmount}");
+    }
+
+    /// <summary>
+    /// Order_Penetrationボタン（挿入ボタン）の有効/無効を切り替えます
+    /// </summary>
+    /// <param name="isInteractable">有効にする場合は true</param>
+    public void SetOrderPenetrationInteractable(bool isInteractable)
+    {
+        if (orderPenetrationButton != null)
+        {
+            orderPenetrationButton.interactable = isInteractable;
+        }
     }
 
     public void UpdateFace(int faceIndex)
