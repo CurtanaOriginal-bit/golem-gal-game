@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using System;
 
 public class MainView : ViewBase
@@ -81,6 +82,18 @@ public class MainView : ViewBase
     [Header("Order Penetration UI")]
     [SerializeField] private Button orderPenetrationButton;
 
+    [System.Serializable]
+    public struct HoverPopupData
+    {
+        [Tooltip("ホバーを検知する対象のUI（ボタンなど）")]
+        public GameObject targetArea;
+        [Tooltip("表示・非表示を切り替えるポップアップのGameObject")]
+        public GameObject popupObject;
+    }
+
+    [Header("Hover Popup UI")]
+    [SerializeField] private HoverPopupData[] hoverPopups;
+
     [Header("Gauge UI")]
     [SerializeField] private Image gaugeInside1;
     [SerializeField] private Image gaugeInside2;
@@ -91,6 +104,9 @@ public class MainView : ViewBase
 
     public event Action<float> OnOpeButtonClicked;
     public event Action<float> OnGauge2IncreaseButtonClicked;
+
+    public event Action<int> OnPopupHoverEntered;
+    public event Action<int> OnPopupHoverExited;
 
     // Presenterが登録するコールバック
     public event Action OnSettingsClicked;
@@ -214,6 +230,21 @@ public class MainView : ViewBase
             }
         }
 
+        if (hoverPopups != null)
+        {
+            for (int i = 0; i < hoverPopups.Length; i++)
+            {
+                if (hoverPopups[i].targetArea != null)
+                {
+                    var forwarder = hoverPopups[i].targetArea.GetComponent<PointerEventForwarder>();
+                    if (forwarder == null) forwarder = hoverPopups[i].targetArea.AddComponent<PointerEventForwarder>();
+                    forwarder.Index = i;
+                    forwarder.OnEnter += HandlePopupHoverEntered;
+                    forwarder.OnExit += HandlePopupHoverExited;
+                }
+            }
+        }
+
         if (subScreenToggles != null)
         {
             foreach (var toggle in subScreenToggles)
@@ -281,7 +312,26 @@ public class MainView : ViewBase
                 }
             }
         }
+
+        if (hoverPopups != null)
+        {
+            for (int i = 0; i < hoverPopups.Length; i++)
+            {
+                if (hoverPopups[i].targetArea != null)
+                {
+                    var forwarder = hoverPopups[i].targetArea.GetComponent<PointerEventForwarder>();
+                    if (forwarder != null)
+                    {
+                        forwarder.OnEnter -= HandlePopupHoverEntered;
+                        forwarder.OnExit -= HandlePopupHoverExited;
+                    }
+                }
+            }
+        }
     }
+
+    private void HandlePopupHoverEntered(int index) => OnPopupHoverEntered?.Invoke(index);
+    private void HandlePopupHoverExited(int index) => OnPopupHoverExited?.Invoke(index);
 
     private void HandleSettingsClicked() => OnSettingsClicked?.Invoke();
 
@@ -622,6 +672,21 @@ public class MainView : ViewBase
         }
     }
 
+    /// <summary>
+    /// ポップアップの表示・非表示を切り替えます
+    /// </summary>
+    public void ShowHoverPopup(int index, bool isVisible)
+    {
+        if (hoverPopups != null && index >= 0 && index < hoverPopups.Length)
+        {
+            if (hoverPopups[index].popupObject != null)
+            {
+                hoverPopups[index].popupObject.SetActive(isVisible);
+                Debug.Log($"[MainView] ポップアップ[{index}]を {(isVisible ? "表示" : "非表示")} にしました。");
+            }
+        }
+    }
+
     public void UpdateFace(int faceIndex)
     {
         if (faceTextures == null || faceTextures.Length == 0)
@@ -655,4 +720,17 @@ public class MainView : ViewBase
             Debug.LogWarning("[MainView] 表情適用先(characterFaceImage/characterRawImage)がありません。");
         }
     }
+}
+
+/// <summary>
+/// マウスホバーイベント（IPointerEnterHandler / IPointerExitHandler）を検知して通知するユーティリティクラス
+/// </summary>
+public class PointerEventForwarder : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+{
+    public Action<int> OnEnter;
+    public Action<int> OnExit;
+    public int Index;
+
+    public void OnPointerEnter(PointerEventData eventData) => OnEnter?.Invoke(Index);
+    public void OnPointerExit(PointerEventData eventData) => OnExit?.Invoke(Index);
 }

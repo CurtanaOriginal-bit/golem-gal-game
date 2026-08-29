@@ -44,6 +44,8 @@ public class MainPresenter : MonoBehaviour
         mainModel.OnFaceChanged += HandleFaceChanged;
         mainView.OnOpeButtonClicked += HandleOpeButtonClicked;
         mainView.OnGauge2IncreaseButtonClicked += HandleGauge2IncreaseButtonClicked;
+        mainView.OnPopupHoverEntered += HandlePopupHoverEntered;
+        mainView.OnPopupHoverExited += HandlePopupHoverExited;
         mainModel.InitializeGauges();
     }
 
@@ -67,6 +69,8 @@ public class MainPresenter : MonoBehaviour
             mainView.OnLoopAnimationButtonClicked -= HandleLoopAnimationButtonClicked;
             mainView.OnOpeButtonClicked -= HandleOpeButtonClicked;
             mainView.OnGauge2IncreaseButtonClicked -= HandleGauge2IncreaseButtonClicked;
+            mainView.OnPopupHoverEntered -= HandlePopupHoverEntered;
+            mainView.OnPopupHoverExited -= HandlePopupHoverExited;
         }
 
         if (mainModel != null)
@@ -240,6 +244,16 @@ public class MainPresenter : MonoBehaviour
     private void HandleGauge2IncreaseButtonClicked(float amount)
     {
         mainModel.IncreaseGauge2(amount);
+    }
+
+    private void HandlePopupHoverEntered(int index)
+    {
+        mainView.ShowHoverPopup(index, true);
+    }
+
+    private void HandlePopupHoverExited(int index)
+    {
+        mainView.ShowHoverPopup(index, false);
     }
 
     private void HandleGaugeChanged(float gauge1Value, float gauge2Value)
