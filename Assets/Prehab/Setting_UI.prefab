@@ -697,15 +697,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: BGM
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 0305d369fa8ac2642b831695d43c5645, type: 2}
-  m_sharedMaterial: {fileID: -282561200814898899, guid: 0305d369fa8ac2642b831695d43c5645, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8038ea101c167ad43b8a513606f40b3f, type: 2}
+  m_sharedMaterial: {fileID: 4744241649943652101, guid: 8038ea101c167ad43b8a513606f40b3f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1000,8 +1000,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u30DF\u30E5\u30FC\u30C8"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 0305d369fa8ac2642b831695d43c5645, type: 2}
-  m_sharedMaterial: {fileID: -282561200814898899, guid: 0305d369fa8ac2642b831695d43c5645, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8038ea101c167ad43b8a513606f40b3f, type: 2}
+  m_sharedMaterial: {fileID: 4744241649943652101, guid: 8038ea101c167ad43b8a513606f40b3f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1137,15 +1137,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: SE
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 0305d369fa8ac2642b831695d43c5645, type: 2}
-  m_sharedMaterial: {fileID: -282561200814898899, guid: 0305d369fa8ac2642b831695d43c5645, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8038ea101c167ad43b8a513606f40b3f, type: 2}
+  m_sharedMaterial: {fileID: 4744241649943652101, guid: 8038ea101c167ad43b8a513606f40b3f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -1870,8 +1870,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u30DF\u30E5\u30FC\u30C8"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 0305d369fa8ac2642b831695d43c5645, type: 2}
-  m_sharedMaterial: {fileID: -282561200814898899, guid: 0305d369fa8ac2642b831695d43c5645, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8038ea101c167ad43b8a513606f40b3f, type: 2}
+  m_sharedMaterial: {fileID: 4744241649943652101, guid: 8038ea101c167ad43b8a513606f40b3f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -2072,8 +2072,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u30DF\u30E5\u30FC\u30C8"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 0305d369fa8ac2642b831695d43c5645, type: 2}
-  m_sharedMaterial: {fileID: -282561200814898899, guid: 0305d369fa8ac2642b831695d43c5645, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8038ea101c167ad43b8a513606f40b3f, type: 2}
+  m_sharedMaterial: {fileID: 4744241649943652101, guid: 8038ea101c167ad43b8a513606f40b3f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -2726,15 +2726,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: "\u30DE\u30B9\u30BF\u30FC\u30DC\u30EA\u30E5\u30FC\u30E0"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 0305d369fa8ac2642b831695d43c5645, type: 2}
-  m_sharedMaterial: {fileID: -282561200814898899, guid: 0305d369fa8ac2642b831695d43c5645, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 8038ea101c167ad43b8a513606f40b3f, type: 2}
+  m_sharedMaterial: {fileID: 4744241649943652101, guid: 8038ea101c167ad43b8a513606f40b3f, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
