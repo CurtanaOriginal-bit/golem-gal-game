@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
 
 public class EntryModel : MonoBehaviour
@@ -12,6 +13,8 @@ public class EntryModel : MonoBehaviour
     public float SEVolume { get; private set; }
 
     private SceneLoader _introductionSceneLoader;
+
+    [SerializeField] private AudioMixer _audioMixer; // Inspectorで割り当てる
 
     private void Awake()
     {
@@ -54,7 +57,17 @@ public class EntryModel : MonoBehaviour
     {
         // 実際のサウンドマネージャーや AudioMixer に反映するロジック
         AudioListener.volume = MasterVolume; // 全体の音量をマスター音量に紐付ける
+        bool result = _audioMixer.SetFloat(BGMVolumeKey, ToDecibel(BGMVolume));
+        _audioMixer.SetFloat(SEVolumeKey, ToDecibel(SEVolume));
+
+        Debug.Log("result: " + result);
         Debug.Log($"音量適用 - Master: {MasterVolume}, BGM: {BGMVolume}, SE: {SEVolume}");
+    }
+
+    // スライダー値(0〜1)をdBに変換。0だと-∞になるので下限を設ける
+    private static float ToDecibel(float linear)
+    {
+        return Mathf.Log10(Mathf.Clamp(linear, 0.0001f, 1f)) * 20f;
     }
 
     public void QuitGame()
