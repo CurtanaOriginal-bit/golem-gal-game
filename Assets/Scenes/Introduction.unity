@@ -165,6 +165,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::StoryManager
   storyDatas:
   - {fileID: 11400000, guid: c88007e261c106645b5d76063bce8aad, type: 2}
+  - {fileID: 11400000, guid: 601a636c3fc46cb4c8c1b84bb998d5a4, type: 2}
   background: {fileID: 1139539760}
   characterImage: {fileID: 5238717248509759058}
   storyText: {fileID: 2090809710}
@@ -172,6 +173,7 @@ MonoBehaviour:
   skipButton: {fileID: 1067874997}
   fadeCanvasGroup: {fileID: 1666212096}
   sceneChangeFadeDuration: 1
+  storyElementFadeDuration: 1
   nextSceneName: main_1
 --- !u!1 &330585543
 GameObject:
