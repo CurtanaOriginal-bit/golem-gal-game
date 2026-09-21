@@ -56,11 +56,10 @@ public class EntryModel : MonoBehaviour
     private void ApplyVolume()
     {
         // 実際のサウンドマネージャーや AudioMixer に反映するロジック
-        AudioListener.volume = MasterVolume; // 全体の音量をマスター音量に紐付ける
-        bool result = _audioMixer.SetFloat(BGMVolumeKey, ToDecibel(BGMVolume));
+        _audioMixer.SetFloat(MasterVolumeKey, ToDecibel(MasterVolume));
+        _audioMixer.SetFloat(BGMVolumeKey, ToDecibel(BGMVolume));
         _audioMixer.SetFloat(SEVolumeKey, ToDecibel(SEVolume));
 
-        Debug.Log("result: " + result);
         Debug.Log($"音量適用 - Master: {MasterVolume}, BGM: {BGMVolume}, SE: {SEVolume}");
     }
 
