@@ -1,11 +1,23 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using System.Collections.Generic;
 
 public enum OutfitControlMode
 {
     None,
     Dress,
     Strip
+}
+
+/// <summary>
+/// 着替えのアクション種別を表す列挙型
+/// </summary>
+public enum OutfitActionType
+{
+    StripUpper,
+    StripLower,
+    DressUpper,
+    DressLower
 }
 
 public class MainModel : MonoBehaviour
@@ -27,6 +39,11 @@ public class MainModel : MonoBehaviour
 
     public event System.Action OnOutfitStateChanged;
     public event System.Action<OutfitControlMode> OnControlModeChanged;
+    
+    /// <summary>
+    /// 着替えのアクションが実行され、表示が切り替わった際に発火するイベント
+    /// </summary>
+    public event System.Action<OutfitActionType> OnOutfitActionExecuted;
 
     // === Gauge Data ===
     public const float MaxGaugeValue = 100f;
@@ -37,6 +54,9 @@ public class MainModel : MonoBehaviour
     // === Face Expression ===
     public int CurrentFaceIndex { get; private set; } = 0;
     public event System.Action<int> OnFaceChanged;
+
+    // === Action Counts ===
+    private Dictionary<string, int> actionCounts = new Dictionary<string, int>();
 
     private SceneLoader _titleSceneLoader;
     private SceneLoader _endingSceneLoader;
@@ -202,6 +222,9 @@ public class MainModel : MonoBehaviour
         {
             Debug.Log($"[MainModel] 上半分レイヤ更新 - Back: {UpperBackVisible}, Front: {UpperFrontVisible}");
             OnOutfitStateChanged?.Invoke();
+
+            OutfitActionType actionType = (CurrentMode == OutfitControlMode.Strip) ? OutfitActionType.StripUpper : OutfitActionType.DressUpper;
+            OnOutfitActionExecuted?.Invoke(actionType);
         }
     }
 
@@ -243,6 +266,9 @@ public class MainModel : MonoBehaviour
         {
             Debug.Log($"[MainModel] 下半分レイヤ更新 - Back: {LowerBackVisible}, Front: {LowerFrontVisible}");
             OnOutfitStateChanged?.Invoke();
+
+            OutfitActionType actionType = (CurrentMode == OutfitControlMode.Strip) ? OutfitActionType.StripLower : OutfitActionType.DressLower;
+            OnOutfitActionExecuted?.Invoke(actionType);
         }
     }
 
@@ -288,6 +314,33 @@ public class MainModel : MonoBehaviour
         Gauge2Value = Mathf.Clamp(Gauge2Value + amount, 0f, MaxGaugeValue);
         OnGaugeChanged?.Invoke(Gauge1Value, Gauge2Value);
         Debug.Log($"[MainModel] Gauge2増加: {Gauge2Value}/{MaxGaugeValue}");
+    }
+
+    /// <summary>
+    /// 指定されたキーのアクション実行回数を1増やします。
+    /// </summary>
+    public void IncrementActionCount(string actionKey)
+    {
+        if (string.IsNullOrEmpty(actionKey)) return;
+        
+        if (!actionCounts.ContainsKey(actionKey))
+        {
+            actionCounts[actionKey] = 0;
+        }
+        actionCounts[actionKey]++;
+        Debug.Log($"[MainModel] アクション回数増加: {actionKey} = {actionCounts[actionKey]}");
+    }
+
+    /// <summary>
+    /// 指定されたキーのアクション実行回数を取得します。
+    /// </summary>
+    public int GetActionCount(string actionKey)
+    {
+        if (string.IsNullOrEmpty(actionKey) || !actionCounts.ContainsKey(actionKey))
+        {
+            return 0;
+        }
+        return actionCounts[actionKey];
     }
 
     // === インナークラス定義 ===
