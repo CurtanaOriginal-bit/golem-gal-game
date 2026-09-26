@@ -224,6 +224,9 @@ public class MainPresenter : MonoBehaviour
             mainModel.LowerBackVisible,
             mainModel.LowerFrontVisible
         );
+
+        // 服装が変更された際にも挿入ボタンの有効判定を更新する
+        UpdateOrderPenetrationButtonState();
     }
 
     private void HandleControlModeChanged(OutfitControlMode mode)
@@ -260,12 +263,27 @@ public class MainPresenter : MonoBehaviour
     {
         mainView.UpdateGaugeFill(gauge1Value / MainModel.MaxGaugeValue, gauge2Value / MainModel.MaxGaugeValue);
 
-        // ゲージ1(gauge_outside1)が60以上の場合のみOrder_Penetrationボタンを有効化する
-        mainView.SetOrderPenetrationInteractable(gauge1Value >= 60f);
+        // ゲージ変動時にも挿入ボタンの有効判定を更新する
+        UpdateOrderPenetrationButtonState();
     }
 
     private void HandleFaceChanged(int faceIndex)
     {
         mainView.UpdateFace(faceIndex);
+    }
+
+    /// <summary>
+    /// 挿入(Order_Penetration)ボタンの有効/無効状態を判定し、Viewへ反映します。
+    /// 条件1: 興奮度(Gauge1)が60以上であること
+    /// 条件2: 下半身の服(LowerBack と LowerFront)が両方とも非表示(脱いでいる状態)であること
+    /// </summary>
+    private void UpdateOrderPenetrationButtonState()
+    {
+        if (mainModel == null || mainView == null) return;
+
+        bool isGaugeEnough = mainModel.Gauge1Value >= 60f;
+        bool isLowerStripped = !mainModel.LowerBackVisible && !mainModel.LowerFrontVisible;
+
+        mainView.SetOrderPenetrationInteractable(isGaugeEnough && isLowerStripped);
     }
 }

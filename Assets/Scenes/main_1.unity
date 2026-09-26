@@ -269,6 +269,7 @@ GameObject:
   - component: {fileID: 32800481}
   - component: {fileID: 32800485}
   - component: {fileID: 32800484}
+  - component: {fileID: 32800486}
   m_Layer: 5
   m_Name: Order_Strip
   m_TagString: Untagged
@@ -385,6 +386,30 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 1, y: -1}
   m_UseGraphicAlpha: 1
+--- !u!114 &32800486
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 32800479}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5bc0707a436c945b7ff0a22c864b84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReactionButtonView
+  reactionConditions:
+  - minGaugeValue: 0
+    requiredActionCounts: []
+    dialogue: "\uFF01\uFF01\n\u2026\u3002\n\u307B\u3093\u3068\u30B5\u30A4\u30A2\u30AF\u2026"
+  - minGaugeValue: 0
+    requiredActionCounts:
+    - ActionKey: Equipe
+      MinCount: 1
+    dialogue: "\u307E\u3001\u307E\u3060\u3059\u308B\u306E\u2026\uFF1F"
+  targetGauge: 0
+  actionKeyToIncrement: Strip
+  targetControlMode: 2
 --- !u!1 &40577208
 GameObject:
   m_ObjectHideFlags: 0
@@ -402,6 +427,7 @@ GameObject:
   - component: {fileID: 40577214}
   - component: {fileID: 40577216}
   - component: {fileID: 40577217}
+  - component: {fileID: 40577218}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -672,6 +698,34 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &40577218
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 40577208}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e873d4fa5862ab4d9870798d523fea3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReactionPresenter
+  mainModel: {fileID: 40577215}
+  reactionTextView: {fileID: 1050967167}
+  reactionButtonViews:
+  - {fileID: 32800486}
+  - {fileID: 953559429}
+  - {fileID: 1902056893}
+  - {fileID: 1226077719}
+  - {fileID: 1581837507}
+  - {fileID: 165415215}
+  - {fileID: 421188813}
+  - {fileID: 1392306414}
+  - {fileID: 1228252027}
+  - {fileID: 1466760610}
+  - {fileID: 593551110}
+  - {fileID: 1226268227}
+  - {fileID: 293054099}
 --- !u!1 &42539778
 GameObject:
   m_ObjectHideFlags: 0
@@ -1175,6 +1229,7 @@ GameObject:
   - component: {fileID: 165415210}
   - component: {fileID: 165415214}
   - component: {fileID: 165415213}
+  - component: {fileID: 165415215}
   m_Layer: 5
   m_Name: Cont_Button_ear2
   m_TagString: Untagged
@@ -1291,6 +1346,31 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 1, y: -1}
   m_UseGraphicAlpha: 1
+--- !u!114 &165415215
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 165415208}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5bc0707a436c945b7ff0a22c864b84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReactionButtonView
+  reactionConditions:
+  - minGaugeValue: 0
+    requiredActionCounts: []
+    dialogue: "\uFF01\uFF1F\uFF01\uFF1F\n\u3084\u3081\u3001\u3084\u3081\u3066\u2026"
+  - minGaugeValue: 50
+    requiredActionCounts: []
+    dialogue: "\u3093\u3093\u3093\u2026\uFF01\uFF01"
+  - minGaugeValue: 80
+    requiredActionCounts: []
+    dialogue: "\u3046\u3041\u30C3\u2026\u2661\n\u305D\u308C\u597D\u304D\u2026\u2026\u30C3\u2661"
+  targetGauge: 0
+  actionKeyToIncrement: 
+  targetControlMode: 0
 --- !u!1 &212059505
 GameObject:
   m_ObjectHideFlags: 0
@@ -1562,6 +1642,7 @@ GameObject:
   - component: {fileID: 293054094}
   - component: {fileID: 293054098}
   - component: {fileID: 293054097}
+  - component: {fileID: 293054099}
   m_Layer: 5
   m_Name: Cont_Button_chest3
   m_TagString: Untagged
@@ -1678,6 +1759,31 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 1, y: -1}
   m_UseGraphicAlpha: 1
+--- !u!114 &293054099
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 293054092}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5bc0707a436c945b7ff0a22c864b84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReactionButtonView
+  reactionConditions:
+  - minGaugeValue: 0
+    requiredActionCounts: []
+    dialogue: "\u3042\u3063\u2026\u3042\u3041\u3042\u2026\u30C3"
+  - minGaugeValue: 50
+    requiredActionCounts: []
+    dialogue: "\u305D\u308C\u3084\u3081\u2026\u30C3\u2026\u2661"
+  - minGaugeValue: 80
+    requiredActionCounts: []
+    dialogue: "\u3042\u3041\u3042\u3063\u2026\u3042\u3042\u3042\u3042\u3063\u2661"
+  targetGauge: 0
+  actionKeyToIncrement: 
+  targetControlMode: 0
 --- !u!1 &304116326
 GameObject:
   m_ObjectHideFlags: 0
@@ -2071,6 +2177,7 @@ GameObject:
   - component: {fileID: 421188808}
   - component: {fileID: 421188812}
   - component: {fileID: 421188811}
+  - component: {fileID: 421188813}
   m_Layer: 5
   m_Name: Cont_Button_mouth1
   m_TagString: Untagged
@@ -2187,6 +2294,31 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 1, y: -1}
   m_UseGraphicAlpha: 1
+--- !u!114 &421188813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 421188806}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5bc0707a436c945b7ff0a22c864b84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReactionButtonView
+  reactionConditions:
+  - minGaugeValue: 0
+    requiredActionCounts: []
+    dialogue: "\u3084\u3001\u3084\u3081\u30C3\u2026\u3093\u3093\u2026\u2661"
+  - minGaugeValue: 50
+    requiredActionCounts: []
+    dialogue: "\u3093\u3093\uFF01\uFF01\u3093\u3045\u3063\u2026\u2661"
+  - minGaugeValue: 80
+    requiredActionCounts: []
+    dialogue: "\u3093\u2026\u2661"
+  targetGauge: 0
+  actionKeyToIncrement: 
+  targetControlMode: 0
 --- !u!1 &427274759
 GameObject:
   m_ObjectHideFlags: 0
@@ -3125,6 +3257,7 @@ GameObject:
   - component: {fileID: 593551105}
   - component: {fileID: 593551109}
   - component: {fileID: 593551108}
+  - component: {fileID: 593551110}
   m_Layer: 5
   m_Name: Cont_Button_chest1
   m_TagString: Untagged
@@ -3241,6 +3374,31 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 1, y: -1}
   m_UseGraphicAlpha: 1
+--- !u!114 &593551110
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 593551103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5bc0707a436c945b7ff0a22c864b84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReactionButtonView
+  reactionConditions:
+  - minGaugeValue: 0
+    requiredActionCounts: []
+    dialogue: "\u3063\u2026\uFF01\uFF01"
+  - minGaugeValue: 50
+    requiredActionCounts: []
+    dialogue: "\u3093\u3093\u3041\u3063\u2026"
+  - minGaugeValue: 80
+    requiredActionCounts: []
+    dialogue: "\u2026\u306F\u3041\u2026\u3042\u30C3\u2026"
+  targetGauge: 0
+  actionKeyToIncrement: 
+  targetControlMode: 0
 --- !u!1 &608559861
 GameObject:
   m_ObjectHideFlags: 0
@@ -4954,6 +5112,7 @@ GameObject:
   - component: {fileID: 953559424}
   - component: {fileID: 953559428}
   - component: {fileID: 953559427}
+  - component: {fileID: 953559429}
   m_Layer: 5
   m_Name: Order_Equipe
   m_TagString: Untagged
@@ -5070,6 +5229,32 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 1, y: -1}
   m_UseGraphicAlpha: 1
+--- !u!114 &953559429
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 953559422}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5bc0707a436c945b7ff0a22c864b84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReactionButtonView
+  reactionConditions:
+  - minGaugeValue: 0
+    requiredActionCounts: []
+    dialogue: "\uFF1F\n\u4F55\u304C\u3057\u305F\u3044\u308F\u3051\uFF1F"
+  - minGaugeValue: 0
+    requiredActionCounts:
+    - ActionKey: Strip
+      MinCount: 1
+    - ActionKey: Penetratipn
+      MinCount: 1
+    dialogue: "\uFF01\n\u304A\u3001\u7D42\u308F\u3063\u305F\u3063\u3066\u3053\u3068\u3067\u3044\u3044\u306E\u2026\u2026\uFF1F"
+  targetGauge: 0
+  actionKeyToIncrement: Equipe
+  targetControlMode: 1
 --- !u!1 &976223273
 GameObject:
   m_ObjectHideFlags: 0
@@ -5414,7 +5599,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u79C1\u304C\u6BBA\u3059 \u79C1\u304C\u751F\u304B\u3059\u3002\n\u79C1\u304C\u50B7\u3064\u3051\u79C1\u304C\u7652\u3059\u3002"
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 23b698c90ac4b1642b7201e5e072d871, type: 2}
   m_sharedMaterial: {fileID: -8351090058452719551, guid: 23b698c90ac4b1642b7201e5e072d871, type: 2}
@@ -5781,6 +5966,7 @@ GameObject:
   - component: {fileID: 1050967166}
   - component: {fileID: 1050967165}
   - component: {fileID: 1050967164}
+  - component: {fileID: 1050967167}
   m_Layer: 5
   m_Name: Display_SE
   m_TagString: Untagged
@@ -5830,9 +6016,23 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 150, y: 220}
-  m_SizeDelta: {x: 100, y: 100}
+  m_AnchoredPosition: {x: 200, y: 220}
+  m_SizeDelta: {x: 100, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1050967167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1050967163}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 245affe0f18892143a5b54862d6077db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReactionTextView
+  reactionText: {fileID: 979917647}
+  fadeDuration: 4
 --- !u!1 &1155484876
 GameObject:
   m_ObjectHideFlags: 0
@@ -6481,6 +6681,7 @@ GameObject:
   - component: {fileID: 1226077714}
   - component: {fileID: 1226077718}
   - component: {fileID: 1226077717}
+  - component: {fileID: 1226077719}
   m_Layer: 5
   m_Name: Order_Blowjob
   m_TagString: Untagged
@@ -6597,6 +6798,32 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 1, y: -1}
   m_UseGraphicAlpha: 1
+--- !u!114 &1226077719
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1226077712}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5bc0707a436c945b7ff0a22c864b84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReactionButtonView
+  reactionConditions:
+  - minGaugeValue: 0
+    requiredActionCounts: []
+    dialogue: "\u3093\u30C3\u2026\u3044\u3072\u306A\u3072\u304F\u3072\u306B\u2026\u30C3\u2049\n\u3093\u3050\u3063\u2026!!"
+  - minGaugeValue: 0
+    requiredActionCounts:
+    - ActionKey: Penetration
+      MinCount: 1
+    - ActionKey: Blowjob
+      MinCount: 2
+    dialogue: "\u304F\u3001\u54A5\u3048\u308C\u3070\u3044\u3044\u3093\u308C\u3072\u3087\u2026\u2026\u3002"
+  targetGauge: 0
+  actionKeyToIncrement: Blowjob
+  targetControlMode: 0
 --- !u!1 &1226268220
 GameObject:
   m_ObjectHideFlags: 0
@@ -6610,6 +6837,7 @@ GameObject:
   - component: {fileID: 1226268222}
   - component: {fileID: 1226268226}
   - component: {fileID: 1226268225}
+  - component: {fileID: 1226268227}
   m_Layer: 5
   m_Name: Cont_Button_chest2
   m_TagString: Untagged
@@ -6726,6 +6954,31 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 1, y: -1}
   m_UseGraphicAlpha: 1
+--- !u!114 &1226268227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1226268220}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5bc0707a436c945b7ff0a22c864b84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReactionButtonView
+  reactionConditions:
+  - minGaugeValue: 0
+    requiredActionCounts: []
+    dialogue: "\u3063\uFF01\uFF01\uFF01\uFF01"
+  - minGaugeValue: 50
+    requiredActionCounts: []
+    dialogue: "\u3046\u3041\u3042\u30C3\u2026\uFF01"
+  - minGaugeValue: 80
+    requiredActionCounts: []
+    dialogue: "\u305D\u308C\u30C3\u2026\u3084\u3070\u3044\u304B\u3089\u30C3\u2026\u2661"
+  targetGauge: 0
+  actionKeyToIncrement: 
+  targetControlMode: 0
 --- !u!1 &1228252020
 GameObject:
   m_ObjectHideFlags: 0
@@ -6739,6 +6992,7 @@ GameObject:
   - component: {fileID: 1228252022}
   - component: {fileID: 1228252026}
   - component: {fileID: 1228252025}
+  - component: {fileID: 1228252027}
   m_Layer: 5
   m_Name: Cont_Button_oman1
   m_TagString: Untagged
@@ -6855,6 +7109,31 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 1, y: -1}
   m_UseGraphicAlpha: 1
+--- !u!114 &1228252027
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1228252020}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5bc0707a436c945b7ff0a22c864b84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReactionButtonView
+  reactionConditions:
+  - minGaugeValue: 0
+    requiredActionCounts: []
+    dialogue: "\u3093\u3093\u3093\u30C3\u2026\uFF01\uFF01"
+  - minGaugeValue: 50
+    requiredActionCounts: []
+    dialogue: "\u3072\u3041\u30C3\u2026\u2026\uFF01"
+  - minGaugeValue: 80
+    requiredActionCounts: []
+    dialogue: "\u3042\u30C3\u2026\u3042\u3042\u3041\u3042\u30C3\u2026\u2661"
+  targetGauge: 0
+  actionKeyToIncrement: 
+  targetControlMode: 0
 --- !u!1 &1325931375
 GameObject:
   m_ObjectHideFlags: 0
@@ -7557,6 +7836,7 @@ GameObject:
   - component: {fileID: 1392306409}
   - component: {fileID: 1392306413}
   - component: {fileID: 1392306412}
+  - component: {fileID: 1392306414}
   m_Layer: 5
   m_Name: Cont_Button_mouth2
   m_TagString: Untagged
@@ -7673,6 +7953,31 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 1, y: -1}
   m_UseGraphicAlpha: 1
+--- !u!114 &1392306414
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1392306407}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5bc0707a436c945b7ff0a22c864b84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReactionButtonView
+  reactionConditions:
+  - minGaugeValue: 0
+    requiredActionCounts: []
+    dialogue: "\u3046\u3047\u3063\u2026\uFF01\uFF01"
+  - minGaugeValue: 50
+    requiredActionCounts: []
+    dialogue: "\u3061\u3087\u3063\u3068\u3001\u307B\u3093\u3068\u304D\u3082\u3044\u3063\u2026\uFF01"
+  - minGaugeValue: 80
+    requiredActionCounts: []
+    dialogue: "\u30C3\u2026\u305D\u308C\u3084\u3081\u3066\u2026\u3063"
+  targetGauge: 0
+  actionKeyToIncrement: 
+  targetControlMode: 0
 --- !u!1 &1406309220
 GameObject:
   m_ObjectHideFlags: 0
@@ -8173,6 +8478,7 @@ GameObject:
   - component: {fileID: 1466760605}
   - component: {fileID: 1466760609}
   - component: {fileID: 1466760608}
+  - component: {fileID: 1466760610}
   m_Layer: 5
   m_Name: Cont_Button_oman2
   m_TagString: Untagged
@@ -8289,6 +8595,31 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 1, y: -1}
   m_UseGraphicAlpha: 1
+--- !u!114 &1466760610
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1466760603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5bc0707a436c945b7ff0a22c864b84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReactionButtonView
+  reactionConditions:
+  - minGaugeValue: 0
+    requiredActionCounts: []
+    dialogue: "\u75DB\u30C3\u2026\uFF01\uFF01\n\u99AC\u9E7F\u3058\u3083\u306A\u3044\u306E\u30C3\uFF01\uFF01"
+  - minGaugeValue: 50
+    requiredActionCounts: []
+    dialogue: "\u3046\u3041\u30C3\u2026\u2026\uFF01\uFF01\n\u3093\u3093\u2026\u2026\uFF01\uFF01"
+  - minGaugeValue: 80
+    requiredActionCounts: []
+    dialogue: "\u3042\u30C3\u2026\u3046\u3041\u2026\u2026\u2661"
+  targetGauge: 0
+  actionKeyToIncrement: 
+  targetControlMode: 0
 --- !u!1 &1502024336
 GameObject:
   m_ObjectHideFlags: 0
@@ -8672,6 +9003,7 @@ GameObject:
   - component: {fileID: 1581837502}
   - component: {fileID: 1581837506}
   - component: {fileID: 1581837505}
+  - component: {fileID: 1581837507}
   m_Layer: 5
   m_Name: Cont_Button_ear1
   m_TagString: Untagged
@@ -8800,6 +9132,31 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 1, y: -1}
   m_UseGraphicAlpha: 1
+--- !u!114 &1581837507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1581837500}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5bc0707a436c945b7ff0a22c864b84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReactionButtonView
+  reactionConditions:
+  - minGaugeValue: 0
+    requiredActionCounts: []
+    dialogue: "\u30C3!!\n\u3053\u3063\u3061\u307F\u3093\u306A\u30C3\u2026"
+  - minGaugeValue: 50
+    requiredActionCounts: []
+    dialogue: "\u2026!!\n\u3075\u2026\u30C3"
+  - minGaugeValue: 80
+    requiredActionCounts: []
+    dialogue: "\u3042\u30C3\u2026\u2661"
+  targetGauge: 0
+  actionKeyToIncrement: 
+  targetControlMode: 0
 --- !u!1 &1617041278
 GameObject:
   m_ObjectHideFlags: 0
@@ -9195,7 +9552,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\u633F\u5165\u306F\u8208\u596E\u5EA6\u304C\u4E00\u5B9A\u5024\u3092\u6E80\u305F\u3059\u3068\u53EF\u80FD"
+  m_text: "\u8208\u596E\u5EA6\u3092\u4E0A\u3052\u3001\u4E0B\u534A\u8EAB\u3092\u8131\u304C\u305B\u308B\u3068\u53EF\u80FD"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 0305d369fa8ac2642b831695d43c5645, type: 2}
   m_sharedMaterial: {fileID: -282561200814898899, guid: 0305d369fa8ac2642b831695d43c5645, type: 2}
@@ -10173,6 +10530,7 @@ GameObject:
   - component: {fileID: 1902056888}
   - component: {fileID: 1902056892}
   - component: {fileID: 1902056891}
+  - component: {fileID: 1902056893}
   m_Layer: 5
   m_Name: Order_Penetration
   m_TagString: Untagged
@@ -10289,6 +10647,34 @@ MonoBehaviour:
   m_EffectColor: {r: 0, g: 0, b: 0, a: 0.5}
   m_EffectDistance: {x: 1, y: -1}
   m_UseGraphicAlpha: 1
+--- !u!114 &1902056893
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1902056886}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6c5bc0707a436c945b7ff0a22c864b84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ReactionButtonView
+  reactionConditions:
+  - minGaugeValue: 0
+    requiredActionCounts: []
+    dialogue: "\u75DB\u30C3\uFF01\uFF01\n\u3084\u3081\u308D\u3057!!!!!!\n\nAV\u3057\u304B\u898B\u3066\u306A\u3044\u7AE5\u8C9E\u304B\u3088\u2026\n\u30B5\u30A4\u30A2\u30AF\u2026"
+  - minGaugeValue: 30
+    requiredActionCounts: []
+    dialogue: "\u3060\u304B\u3089\u307E\u3060\u305D\u3093\u306A\u6FE1\u308C\u3066\u306A\u3044\u3043\u30C3\u2026\n\u3044\u30C3\u305F\u2026\u3044\u2026\u2026\n\u3044\u3001\u3044\u3083\u2026"
+  - minGaugeValue: 50
+    requiredActionCounts: []
+    dialogue: "\u3093\u30C3\u2026\n\u306A\u3001\u306A\u3093\u3060\u3057\u30C3\u2026\u203C\n\u611F\u3058\u3066\u306A\u3093\u304B\u2026\u30C3\uFF01!"
+  - minGaugeValue: 70
+    requiredActionCounts: []
+    dialogue: "\uFF5E\uFF5E\uFF5E\uFF5E\u30C3\uFF01\uFF1F\n\u3042\u201D\u2026\u2026\u30C3\uFF01\uFF1F\n\n\u9854\u2026\uFF01\uFF01\u9854\u30C3\u2026\u307F\u308B\u306A\u3057\u30C3\u30C3\u2026\u2026\uFF01\n\uFF5E\uFF5E\uFF5E\uFF5E\uFF5E\uFF5E\u30C3\u2661"
+  targetGauge: 1
+  actionKeyToIncrement: Penetration
+  targetControlMode: 0
 --- !u!1 &1907873368
 GameObject:
   m_ObjectHideFlags: 0
