@@ -571,17 +571,18 @@ MonoBehaviour:
     screenAnimations:
     - targetScreen: {fileID: 1170180995}
       textures:
-      - {fileID: 2800000, guid: c5d5e9479f763b04382b5ad3e9cde3bc, type: 3}
+      - {fileID: 2800000, guid: 31e0b75ac98a33d4ebf3d44494a4dd77, type: 3}
     isLoop: 0
   - button: {fileID: 1902056888}
     screenAnimations:
     - targetScreen: {fileID: 1544804989}
       textures:
-      - {fileID: 2800000, guid: f787da87c0e4094448c11e367c04e7b1, type: 3}
+      - {fileID: 2800000, guid: 50d703c23ec5ff24d9e78a96e9fc05e1, type: 3}
+      - {fileID: 2800000, guid: 641c03ca1b01c63458b65aba082f7915, type: 3}
+      - {fileID: 2800000, guid: c3138e70b808dad43bfb0c9dcb7b6c6e, type: 3}
     - targetScreen: {fileID: 1170180995}
-      textures:
-      - {fileID: 2800000, guid: c5d5e9479f763b04382b5ad3e9cde3bc, type: 3}
-    isLoop: 0
+      textures: []
+    isLoop: 1
   animationFrameRate: 0.5
   subScreenToggles:
   - triggerButton: {fileID: 1226077714}
