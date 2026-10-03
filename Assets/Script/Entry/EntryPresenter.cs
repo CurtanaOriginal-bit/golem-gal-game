@@ -22,6 +22,8 @@ public class EntryPresenter : MonoBehaviour
         entryView.OnExitClicked += HandleExitGame;
         entryView.OnSettingsClicked += HandleSettingsClicked;
         entryView.OnSettingsOpened += HandleSettingsOpened;
+        entryView.OnCreditClicked += HandleCreditClicked;
+        entryView.OnCreditOpened += HandleCreditOpened;
     }
 
     private void OnDisable()
@@ -33,6 +35,7 @@ public class EntryPresenter : MonoBehaviour
             entryView.OnExitClicked -= HandleExitGame;
             entryView.OnSettingsClicked -= HandleSettingsClicked;
             entryView.OnSettingsOpened -= HandleSettingsOpened;
+            entryView.OnCreditClicked -= HandleCreditClicked;
         }
     }
 
@@ -51,6 +54,11 @@ public class EntryPresenter : MonoBehaviour
         entryView.OpenSettings();
     }
 
+    private void HandleCreditClicked()
+    {
+        entryView.OpenCredit();
+    }
+
     private void HandleSettingsOpened(SettingsView settingsView)
     {
         // 動的生成された設定画面のスライダーに現在の音量値を反映
@@ -65,8 +73,19 @@ public class EntryPresenter : MonoBehaviour
         settingsView.OnCloseSettingsClicked = HandleCloseSettingsClicked;
     }
 
+    private void HandleCreditOpened(CreditView creditView)
+    {
+        // クレジット画面内の閉じるボタンが押されたらView側で破棄する
+        creditView.OnCloseCreditClicked = HandleCloseCreditClicked;
+    }
+
     private void HandleCloseSettingsClicked()
     {
         entryView.CloseSettings();
+    }
+
+    private void HandleCloseCreditClicked()
+    {
+        entryView.CloseCredit();
     }
 }

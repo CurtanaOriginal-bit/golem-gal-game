@@ -1457,8 +1457,10 @@ MonoBehaviour:
   startButton: {fileID: 777130973}
   settingsButton: {fileID: 229842570}
   exitButton: {fileID: 978934039}
+  creditButton: {fileID: 728841263}
   settingsPrefab: {fileID: 3892931784425845479, guid: d05ee27a3c90dfb4cb3f5dc75107a681, type: 3}
   canvasTransform: {fileID: 1481552492}
+  creditPrefab: {fileID: 4871643045104092737, guid: 1e3f310bb8b800e47a2062ebe0e30163, type: 3}
 --- !u!1 &1542050947
 GameObject:
   m_ObjectHideFlags: 0
