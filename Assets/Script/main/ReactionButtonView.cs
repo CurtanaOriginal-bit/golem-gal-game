@@ -24,6 +24,25 @@ public enum TargetGaugeType
 }
 
 /// <summary>
+/// セリフを表示するターゲットの場所の指定用
+/// </summary>
+public enum ReactionDisplayTarget
+{
+    Default,        // 通常の表示先（今までと同じ）
+    AlternateScreen // 別の場所（Order_Blowjobなどのサブスクリーン用）
+}
+
+/// <summary>
+/// ボタンが持つ特殊な役割（ON/OFF切り替えなど）を指定する列挙型
+/// </summary>
+public enum ReactionFeatureType
+{
+    None,               // 通常のクリックボタン
+    PenetrationToggle,  // 挿入トグルボタン
+    BlowjobToggle       // フェラチオトグルボタン
+}
+
+/// <summary>
 /// 【View】クリック操作を検知し、インスペクターで設定されたセリフ条件リストをPresenterへ通知するViewコンポーネントです。
 /// </summary>
 [RequireComponent(typeof(Button))]
@@ -42,6 +61,12 @@ public class ReactionButtonView : MonoBehaviour, IReactionButtonView
     [SerializeField] private TargetGaugeType targetGauge = TargetGaugeType.Gauge1;
 
     /// <summary>
+    /// このボタンによるセリフの表示場所
+    /// </summary>
+    [Tooltip("セリフを表示する場所（Default以外を指定すると、Presenterで設定した別枠に表示されます）")]
+    [SerializeField] private ReactionDisplayTarget displayTarget = ReactionDisplayTarget.Default;
+
+    /// <summary>
     /// ボタンが押された時に回数を加算する対象のアクションキー（空なら何もしない）
     /// </summary>
     [Tooltip("押下時に回数を増やすアクションのキー（例: Insert, Fellatio）。不要なら空欄。")]
@@ -55,6 +80,12 @@ public class ReactionButtonView : MonoBehaviour, IReactionButtonView
     [SerializeField] private OutfitControlMode targetControlMode = OutfitControlMode.None;
 
     /// <summary>
+    /// このボタンがON/OFF状態を持つ機能のトグルボタンである場合、その種類を設定します。
+    /// </summary>
+    [Tooltip("ON/OFFを切り替えるトグルボタン（挿入・フェラチオ）の場合に設定します。無効化時にはセリフが表示されなくなります。")]
+    [SerializeField] private ReactionFeatureType featureType = ReactionFeatureType.None;
+
+    /// <summary>
     /// 設定されたセリフ条件リストを取得します。
     /// </summary>
     public IReadOnlyList<ReactionCondition> ReactionConditions => reactionConditions;
@@ -65,6 +96,11 @@ public class ReactionButtonView : MonoBehaviour, IReactionButtonView
     public TargetGaugeType TargetGauge => targetGauge;
 
     /// <summary>
+    /// セリフの表示先ターゲットを取得します。
+    /// </summary>
+    public ReactionDisplayTarget DisplayTarget => displayTarget;
+
+    /// <summary>
     /// 設定されたアクション加算キーを取得します。
     /// </summary>
     public string ActionKeyToIncrement => actionKeyToIncrement;
@@ -73,6 +109,11 @@ public class ReactionButtonView : MonoBehaviour, IReactionButtonView
     /// アクション実行時発火の対象となるモードを取得します。
     /// </summary>
     public OutfitControlMode TargetControlMode => targetControlMode;
+
+    /// <summary>
+    /// このボタンの特殊機能のタイプを取得します。
+    /// </summary>
+    public ReactionFeatureType FeatureType => featureType;
 
     private Button _button;
 

@@ -55,6 +55,28 @@ public class MainModel : MonoBehaviour
     public int CurrentFaceIndex { get; private set; } = 0;
     public event System.Action<int> OnFaceChanged;
 
+    // === Order State ===
+    public bool IsPenetrationActive { get; private set; } = false;
+    public bool IsBlowjobActive { get; private set; } = false;
+    public event System.Action<bool, bool> OnOrderStateChanged;
+
+    private float _penetrationTimer = 0f;
+    private float _blowjobTimer = 0f;
+
+    public void TogglePenetration()
+    {
+        IsPenetrationActive = !IsPenetrationActive;
+        if (IsPenetrationActive) IsBlowjobActive = false; // 排他制御
+        OnOrderStateChanged?.Invoke(IsPenetrationActive, IsBlowjobActive);
+    }
+
+    public void ToggleBlowjob()
+    {
+        IsBlowjobActive = !IsBlowjobActive;
+        if (IsBlowjobActive) IsPenetrationActive = false; // 排他制御
+        OnOrderStateChanged?.Invoke(IsPenetrationActive, IsBlowjobActive);
+    }
+
     // === Action Counts ===
     private Dictionary<string, int> actionCounts = new Dictionary<string, int>();
 
@@ -68,9 +90,16 @@ public class MainModel : MonoBehaviour
         [SerializeField] private string[] sentences;
 
         public string[] Sentences => sentences;
+
+        public void SetSentences(string[] newSentences)
+        {
+            sentences = newSentences;
+        }
     }
 
     [Header("Talk Settings")]
+    [Tooltip("各ボタンに対応するセリフが書かれたテキストファイル(.txt)。1行1セリフとして読み込まれます。")]
+    [SerializeField] private TextAsset[] talkTextFiles;
     [SerializeField] private TalkGroup[] talkGroups;
     [SerializeField] private bool isAutoTalkMode = false;
     [SerializeField] private float autoTalkInterval = 2.0f;
@@ -86,6 +115,66 @@ public class MainModel : MonoBehaviour
     {
         _titleSceneLoader = new SceneLoader("Title");
         _endingSceneLoader = new SceneLoader("Ending");
+
+        // テキストファイルからセリフを自動読み込み
+        if (talkTextFiles != null && talkTextFiles.Length > 0)
+        {
+            if (talkGroups == null || talkGroups.Length < talkTextFiles.Length)
+            {
+                var newGroups = new TalkGroup[talkTextFiles.Length];
+                for (int i = 0; i < talkTextFiles.Length; i++)
+                {
+                    newGroups[i] = (talkGroups != null && i < talkGroups.Length && talkGroups[i] != null) 
+                                   ? talkGroups[i] : new TalkGroup();
+                }
+                talkGroups = newGroups;
+            }
+
+            for (int i = 0; i < talkTextFiles.Length; i++)
+            {
+                if (talkTextFiles[i] != null)
+                {
+                    // 改行コードで分割（空白行は除去する）
+                    string[] lines = talkTextFiles[i].text.Split(new[] { '\r', '\n' }, System.StringSplitOptions.RemoveEmptyEntries);
+                    
+                    if (talkGroups[i] == null) talkGroups[i] = new TalkGroup();
+                    talkGroups[i].SetSentences(lines);
+                }
+            }
+        }
+    }
+
+    private void Update()
+    {
+        // 挿入機能のタイマー処理
+        if (IsPenetrationActive)
+        {
+            _penetrationTimer += Time.deltaTime;
+            if (_penetrationTimer >= 1f)
+            {
+                IncreaseGauge2(1f);
+                _penetrationTimer -= 1f;
+            }
+        }
+        else
+        {
+            _penetrationTimer = 0f; // OFFになったらタイマーリセット
+        }
+
+        // フェラ機能のタイマー処理
+        if (IsBlowjobActive)
+        {
+            _blowjobTimer += Time.deltaTime;
+            if (_blowjobTimer >= 1f)
+            {
+                IncreaseGauge2(1f);
+                _blowjobTimer -= 1f;
+            }
+        }
+        else
+        {
+            _blowjobTimer = 0f; // OFFになったらタイマーリセット
+        }
     }
 
     public void LoadSettings()

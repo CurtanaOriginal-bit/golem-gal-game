@@ -12,6 +12,11 @@ public interface IReactionTextView
     /// </summary>
     /// <param name="text">表示するセリフ</param>
     void ShowText(string text);
+
+    /// <summary>
+    /// テキストの表示を即座に消去します。
+    /// </summary>
+    void HideText();
 }
 
 /// <summary>
@@ -78,6 +83,23 @@ public class ReactionTextView : MonoBehaviour, IReactionTextView
         }
 
         _fadeCoroutine = StartCoroutine(FadeOutRoutine());
+    }
+
+    /// <summary>
+    /// 現在表示中のテキストを即座に消去し、フェードアウト処理を停止します。
+    /// </summary>
+    public void HideText()
+    {
+        if (_fadeCoroutine != null)
+        {
+            StopCoroutine(_fadeCoroutine);
+            _fadeCoroutine = null;
+        }
+
+        if (_canvasGroup != null)
+        {
+            _canvasGroup.alpha = 0f;
+        }
     }
 
     /// <summary>

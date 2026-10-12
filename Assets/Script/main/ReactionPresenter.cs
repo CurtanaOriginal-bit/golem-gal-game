@@ -13,10 +13,16 @@ public class ReactionPresenter : MonoBehaviour
     [SerializeField] private MainModel mainModel;
 
     /// <summary>
-    /// セリフテキストを表示・フェードアウトさせるViewへの参照
+    /// デフォルトのセリフテキストを表示・フェードアウトさせるViewへの参照
     /// </summary>
-    [Tooltip("セリフを表示するReactionTextView")]
+    [Tooltip("デフォルトのセリフを表示するReactionTextView")]
     [SerializeField] private ReactionTextView reactionTextView;
+
+    /// <summary>
+    /// 別の場所（フェラチオ時のサブスクリーンなど）にセリフを表示・フェードアウトさせるViewへの参照
+    /// </summary>
+    [Tooltip("別の場所にセリフを表示するReactionTextView")]
+    [SerializeField] private ReactionTextView alternateTextView;
 
     /// <summary>
     /// ユーザー入力を受け付けるリアクションボタンViewのリスト
@@ -64,6 +70,10 @@ public class ReactionPresenter : MonoBehaviour
         {
             mainModel.OnOutfitActionExecuted -= HandleOutfitActionExecuted;
             mainModel.OnOutfitActionExecuted += HandleOutfitActionExecuted;
+
+            // トグル状態の変更イベントを購読
+            mainModel.OnOrderStateChanged -= HandleOrderStateChanged;
+            mainModel.OnOrderStateChanged += HandleOrderStateChanged;
         }
     }
 
@@ -86,6 +96,7 @@ public class ReactionPresenter : MonoBehaviour
         if (mainModel != null)
         {
             mainModel.OnOutfitActionExecuted -= HandleOutfitActionExecuted;
+            mainModel.OnOrderStateChanged -= HandleOrderStateChanged;
         }
     }
 
@@ -102,6 +113,14 @@ public class ReactionPresenter : MonoBehaviour
         if (buttonView.TargetControlMode != OutfitControlMode.None)
         {
             Debug.Log($"[ReactionPresenter] ボタンクリック検知。ただしモード切替設定({buttonView.TargetControlMode})のためセリフ表示を保留します。");
+            return;
+        }
+
+        // トグル機能ボタン（ON/OFF切り替え）の場合、無効化時のクリック発火を防ぐため、
+        // クリックイベントではなく OnOrderStateChanged 側で発火させるのでここでは無視する
+        if (buttonView.FeatureType != ReactionFeatureType.None)
+        {
+            Debug.Log($"[ReactionPresenter] ボタンクリック検知。ただしトグル機能({buttonView.FeatureType})のため状態変更イベントからの発火へ委譲します。");
             return;
         }
 
@@ -133,6 +152,80 @@ public class ReactionPresenter : MonoBehaviour
     }
 
     /// <summary>
+    /// オーダー状態（トグル）が変更された時に呼ばれるハンドラー。
+    /// ONになった時は対応するセリフを実行し、OFFになった時は即座に非表示にします。
+    /// </summary>
+    private void HandleOrderStateChanged(bool isPenetrationActive, bool isBlowjobActive)
+    {
+        if (reactionButtonViews == null) return;
+
+        // 挿入トグルの処理
+        if (isPenetrationActive)
+        {
+            ExecuteReactionForFeature(ReactionFeatureType.PenetrationToggle);
+        }
+        else
+        {
+            HideDialogueForFeature(ReactionFeatureType.PenetrationToggle);
+        }
+
+        // フェラチオトグルの処理
+        if (isBlowjobActive)
+        {
+            ExecuteReactionForFeature(ReactionFeatureType.BlowjobToggle);
+        }
+        else
+        {
+            HideDialogueForFeature(ReactionFeatureType.BlowjobToggle);
+        }
+    }
+
+    /// <summary>
+    /// 指定されたFeatureTypeを持つボタンを探してリアクションを実行します。
+    /// </summary>
+    private void ExecuteReactionForFeature(ReactionFeatureType featureType)
+    {
+        if (reactionButtonViews == null) return;
+
+        for (int i = 0; i < reactionButtonViews.Length; i++)
+        {
+            var buttonView = reactionButtonViews[i];
+            if (buttonView != null && buttonView.FeatureType == featureType)
+            {
+                Debug.Log($"[ReactionPresenter] トグル機能({featureType})がONになったため、保留されていたセリフを実行します。");
+                ExecuteReaction(buttonView);
+                break; // 同じ機能のボタンは1つと仮定
+            }
+        }
+    }
+
+    /// <summary>
+    /// 指定されたFeatureTypeを持つボタンを探し、その表示先のセリフを即座に消去します。
+    /// </summary>
+    private void HideDialogueForFeature(ReactionFeatureType featureType)
+    {
+        if (reactionButtonViews == null) return;
+
+        for (int i = 0; i < reactionButtonViews.Length; i++)
+        {
+            var buttonView = reactionButtonViews[i];
+            if (buttonView != null && buttonView.FeatureType == featureType)
+            {
+                ReactionTextView targetView = (buttonView.DisplayTarget == ReactionDisplayTarget.AlternateScreen && alternateTextView != null) 
+                                              ? alternateTextView 
+                                              : reactionTextView;
+                
+                if (targetView != null)
+                {
+                    Debug.Log($"[ReactionPresenter] トグル機能({featureType})がOFFになったため、テキスト({targetView.gameObject.name})を非表示にします。");
+                    targetView.HideText();
+                }
+                break; // 同じ機能のボタンは1つと仮定
+            }
+        }
+    }
+
+    /// <summary>
     /// アクション回数の増加とセリフの表示処理を行います。
     /// </summary>
     /// <param name="buttonView">実行対象のボタンView</param>
@@ -149,7 +242,7 @@ public class ReactionPresenter : MonoBehaviour
         Debug.Log("[ReactionPresenter] リアクション実行。条件リストの数: " + (buttonView.ReactionConditions != null ? buttonView.ReactionConditions.Count : 0));
         
         float targetGaugeValue = buttonView.TargetGauge == TargetGaugeType.Gauge2 ? mainModel.Gauge2Value : mainModel.Gauge1Value;
-        ShowDialogueIfConditionMet(buttonView.ReactionConditions, targetGaugeValue);
+        ShowDialogueIfConditionMet(buttonView.ReactionConditions, targetGaugeValue, buttonView.DisplayTarget);
     }
 
     /// <summary>
@@ -157,11 +250,17 @@ public class ReactionPresenter : MonoBehaviour
     /// </summary>
     /// <param name="conditions">判定対象のセリフ条件リスト</param>
     /// <param name="currentGauge">判定に使用する現在のゲージ値</param>
-    private void ShowDialogueIfConditionMet(System.Collections.Generic.IReadOnlyList<ReactionCondition> conditions, float currentGauge)
+    /// <param name="displayTarget">セリフの表示先ターゲット</param>
+    private void ShowDialogueIfConditionMet(System.Collections.Generic.IReadOnlyList<ReactionCondition> conditions, float currentGauge, ReactionDisplayTarget displayTarget = ReactionDisplayTarget.Default)
     {
-        if (mainModel == null || reactionTextView == null)
+        // ターゲット指定に応じて使用するテキストViewを切り替える（未設定ならデフォルトにフォールバック）
+        ReactionTextView targetView = (displayTarget == ReactionDisplayTarget.AlternateScreen && alternateTextView != null) 
+                                      ? alternateTextView 
+                                      : reactionTextView;
+
+        if (mainModel == null || targetView == null)
         {
-            Debug.LogWarning("[ReactionPresenter] MainModel または ReactionTextView への参照が未設定です。");
+            Debug.LogWarning("[ReactionPresenter] MainModel または 対象のReactionTextView への参照が未設定です。");
             return;
         }
 
@@ -211,8 +310,8 @@ public class ReactionPresenter : MonoBehaviour
         // 条件を満たすセリフが見つかった場合に表示
         if (!string.IsNullOrEmpty(selectedDialogue))
         {
-            Debug.Log($"[ReactionPresenter] セリフを表示します: {selectedDialogue}");
-            reactionTextView.ShowText(selectedDialogue);
+            Debug.Log($"[ReactionPresenter] セリフを表示します: {selectedDialogue} (表示先: {targetView.gameObject.name})");
+            targetView.ShowText(selectedDialogue);
         }
         else
         {
