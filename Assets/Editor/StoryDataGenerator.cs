@@ -3,8 +3,14 @@ using UnityEngine;
 using System.IO;
 using System.Collections.Generic;
 
+/// <summary>
+/// テキストファイルから StoryData アセットを自動生成するエディタ拡張です。
+/// </summary>
 public class StoryDataGenerator : EditorWindow
 {
+    /// <summary>
+    /// テキストファイルと保存先を選ばせ、内容を StoryData に変換して保存します（既存アセットなら追記します）。
+    /// </summary>
     [MenuItem("Tools/Story/テキストからStoryDataを自動生成")]
     public static void GenerateStoryData()
     {

@@ -1,16 +1,41 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
 
+/// <summary>
+/// メイン画面の Presenter です。MainView の操作を MainModel の処理につなぎ、Model の状態変化を View に反映します。
+/// </summary>
 public class MainPresenter : MonoBehaviour
 {
+    /// <summary>
+    /// 挿入ボタンを押せるようになる興奮度（Gauge1）
+    /// </summary>
+    private const float PenetrationRequiredGauge = 60f;
+
+    /// <summary>
+    /// メイン画面の View
+    /// </summary>
     [SerializeField] private MainView mainView;
+
+    /// <summary>
+    /// メイン画面の Model（ゲージ・服装・会話・設定値などの状態）
+    /// </summary>
     [SerializeField] private MainModel mainModel;
 
+    /// <summary>
+    /// オート会話で次のセリフへ進めるまでの経過時間(秒)
+    /// </summary>
+    private float _autoTalkTimer;
+
+    /// <summary>
+    /// 保存済みの設定を読み込み、View・Model のイベントを購読して、ゲージと会話ボタンを初期化します。
+    /// </summary>
     private void OnEnable()
     {
         Debug.Log("[MainPresenter] OnEnable() が呼び出されました。");
         if (mainView == null || mainModel == null)
         {
-            Debug.LogError("MainView または MainModel がアタッチされていません。");
+            Debug.LogError("[MainPresenter] MainView または MainModel がアタッチされていません。");
             return;
         }
 
@@ -54,6 +79,9 @@ public class MainPresenter : MonoBehaviour
         UpdateTalkButtonStates();
     }
 
+    /// <summary>
+    /// View・Model のイベントの購読を解除します。
+    /// </summary>
     private void OnDisable()
     {
         if (mainView != null)
@@ -90,49 +118,72 @@ public class MainPresenter : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// アニメーションを止めて設定画面を開きます。
+    /// </summary>
     private void HandleSettingsClicked()
     {
         mainView.StopLoopAnimation();
         mainView.OpenSettings();
     }
 
+    /// <summary>
+    /// 開いた設定画面に現在の設定値を反映し、変更時の保存処理をつなぎます。
+    /// </summary>
     private void HandleSettingsOpened(SettingsView settingsView)
     {
         // 動的生成された設定画面のスライダーに現在の音量値を反映
         settingsView.InitializeSliders(mainModel.MasterVolume, mainModel.BGMVolume, mainModel.SEVolume);
+        settingsView.InitializeFullScreenToggle(mainModel.IsFullScreen);
 
         // 設定画面内のイベントをModelの保存処理に繋ぐ
         settingsView.OnMasterVolumeChanged = mainModel.SaveMasterVolume;
         settingsView.OnBgmVolumeChanged = mainModel.SaveBGMVolume;
         settingsView.OnSeVolumeChanged = mainModel.SaveSEVolume;
+        settingsView.OnFullScreenChanged = mainModel.SaveFullScreen;
 
         // 設定画面内の閉じるボタンが押されたらView側で破棄する
         settingsView.OnCloseSettingsClicked = HandleCloseSettingsClicked;
     }
 
+    /// <summary>
+    /// 設定画面を閉じます。
+    /// </summary>
     private void HandleCloseSettingsClicked()
     {
         mainView.CloseSettings();
     }
 
+    /// <summary>
+    /// アニメーションを止めてタイトル画面へ遷移します。
+    /// </summary>
     private void HandleTitleClicked()
     {
         mainView.StopLoopAnimation();
         mainModel.LoadTitleScene();
     }
 
+    /// <summary>
+    /// アニメーションを止めてエンディング画面へ遷移します。
+    /// </summary>
     private void HandleEndingClicked()
     {
         mainView.StopLoopAnimation();
         mainModel.LoadEndingScene();
     }
 
+    /// <summary>
+    /// 再生中のループアニメーションを止めます。
+    /// </summary>
     private void HandleCancelClicked()
     {
         // 進行中のアニメーションのみを強制的に終了・非表示にする
         mainView.StopLoopAnimation();
     }
 
+    /// <summary>
+    /// 指定した会話を始め、会話ウィンドウを開きます（会話ボタンの押下回数も記録します）。
+    /// </summary>
     private void HandleTalkButtonClicked(int index)
     {
         mainView.StopLoopAnimation();
@@ -149,14 +200,15 @@ public class MainPresenter : MonoBehaviour
         mainView.OpenTalkWindow(text);
 
         // ボタンがフォーカスされたままだとEnter/Spaceキーで再クリックされてしまうためフォーカスを外す
-        if (UnityEngine.EventSystems.EventSystem.current != null)
+        if (EventSystem.current != null)
         {
-            UnityEngine.EventSystems.EventSystem.current.SetSelectedGameObject(null);
+            EventSystem.current.SetSelectedGameObject(null);
         }
     }
 
-    private float _autoTalkTimer = 0f;
-
+    /// <summary>
+    /// 会話中、オート会話の時間経過や Space・Enter キーでセリフを進めます。
+    /// </summary>
     private void Update()
     {
         if (mainModel.IsTalking)
@@ -170,10 +222,10 @@ public class MainPresenter : MonoBehaviour
                 }
             }
 
-            if (UnityEngine.InputSystem.Keyboard.current != null)
+            if (Keyboard.current != null)
             {
-                if (UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame || 
-                    UnityEngine.InputSystem.Keyboard.current.enterKey.wasPressedThisFrame)
+                if (Keyboard.current.spaceKey.wasPressedThisFrame || 
+                    Keyboard.current.enterKey.wasPressedThisFrame)
                 {
                     AdvanceTalk();
                 }
@@ -185,16 +237,25 @@ public class MainPresenter : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// オート会話の ON/OFF を切り替えます。
+    /// </summary>
     private void HandleAutoTalkToggleChanged(bool isOn)
     {
         mainModel.IsAutoTalkMode = isOn;
     }
 
+    /// <summary>
+    /// 会話ウィンドウがクリックされたらセリフを進めます。
+    /// </summary>
     private void HandleTalkWindowClicked()
     {
         AdvanceTalk();
     }
 
+    /// <summary>
+    /// 次のセリフを表示します。最後のセリフだった場合は会話ウィンドウを閉じます。
+    /// </summary>
     private void AdvanceTalk()
     {
         _autoTalkTimer = 0f;
@@ -209,28 +270,43 @@ public class MainPresenter : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// アニメーションを止めて「着せる」モードにします。
+    /// </summary>
     private void HandleDressClicked()
     {
         mainView.StopLoopAnimation();
         mainModel.SetControlMode(OutfitControlMode.Dress);
     }
 
+    /// <summary>
+    /// アニメーションを止めて「脱がす」モードにします。
+    /// </summary>
     private void HandleStripClicked()
     {
         mainView.StopLoopAnimation();
         mainModel.SetControlMode(OutfitControlMode.Strip);
     }
 
+    /// <summary>
+    /// キャラクターの上半身のクリックを Model に伝えます。
+    /// </summary>
     private void HandleUpperAreaClicked()
     {
         mainModel.ClickUpperArea();
     }
 
+    /// <summary>
+    /// キャラクターの下半身のクリックを Model に伝えます。
+    /// </summary>
     private void HandleLowerAreaClicked()
     {
         mainModel.ClickLowerArea();
     }
 
+    /// <summary>
+    /// 服装の表示を更新し、挿入ボタンの有効判定も更新します。
+    /// </summary>
     private void HandleOutfitStateChanged()
     {
         mainView.UpdateOutfitVisibility(
@@ -244,21 +320,33 @@ public class MainPresenter : MonoBehaviour
         UpdateOrderPenetrationButtonState();
     }
 
+    /// <summary>
+    /// 着せる・脱がすモードに合わせて UI を切り替えます。
+    /// </summary>
     private void HandleControlModeChanged(OutfitControlMode mode)
     {
         mainView.SetControlModeUI(mode);
     }
 
+    /// <summary>
+    /// 挿入の ON/OFF を切り替えます。
+    /// </summary>
     private void HandleOrderPenetrationClicked()
     {
         mainModel.TogglePenetration();
     }
 
+    /// <summary>
+    /// フェラの ON/OFF を切り替えます。
+    /// </summary>
     private void HandleOrderBlowjobClicked()
     {
         mainModel.ToggleBlowjob();
     }
 
+    /// <summary>
+    /// 挿入・フェラの状態に合わせてボタン表示とアニメーションを更新します。
+    /// </summary>
     private void HandleOrderStateChanged(bool isPenetrationActive, bool isBlowjobActive)
     {
         mainView.UpdateOrderButtonText(isPenetrationActive, isBlowjobActive);
@@ -273,31 +361,49 @@ public class MainPresenter : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 指定したループアニメーションを再生します。
+    /// </summary>
     private void HandleLoopAnimationButtonClicked(int index)
     {
         mainView.PlayLoopAnimation(index);
     }
 
+    /// <summary>
+    /// 興奮度（Gauge1）を増やします。
+    /// </summary>
     private void HandleOpeButtonClicked(float amount)
     {
         mainModel.IncreaseGauge1(amount);
     }
 
+    /// <summary>
+    /// 射精感（Gauge2）を増やします。
+    /// </summary>
     private void HandleGauge2IncreaseButtonClicked(float amount)
     {
         mainModel.IncreaseGauge2(amount);
     }
 
+    /// <summary>
+    /// 指定したボタンのホバー時ポップアップを表示します。
+    /// </summary>
     private void HandlePopupHoverEntered(int index)
     {
         mainView.ShowHoverPopup(index, true);
     }
 
+    /// <summary>
+    /// 指定したボタンのホバー時ポップアップを非表示にします。
+    /// </summary>
     private void HandlePopupHoverExited(int index)
     {
         mainView.ShowHoverPopup(index, false);
     }
 
+    /// <summary>
+    /// ゲージ表示を更新し、挿入ボタンの有効判定と会話ボタンの解放状態も更新します。
+    /// </summary>
     private void HandleGaugeChanged(float gauge1Value, float gauge2Value)
     {
         mainView.UpdateGaugeFill(gauge1Value / MainModel.MaxGaugeValue, gauge2Value / MainModel.MaxGaugeValue);
@@ -309,6 +415,9 @@ public class MainPresenter : MonoBehaviour
         UpdateTalkButtonStates();
     }
 
+    /// <summary>
+    /// キャラクターの表情を切り替えます。
+    /// </summary>
     private void HandleFaceChanged(int faceIndex)
     {
         mainView.UpdateFace(faceIndex);
@@ -323,12 +432,15 @@ public class MainPresenter : MonoBehaviour
     {
         if (mainModel == null || mainView == null) return;
 
-        bool isGaugeEnough = mainModel.Gauge1Value >= 60f;
+        bool isGaugeEnough = mainModel.Gauge1Value >= PenetrationRequiredGauge;
         bool isLowerStripped = !mainModel.LowerBackVisible && !mainModel.LowerFrontVisible;
 
         mainView.SetOrderPenetrationInteractable(isGaugeEnough && isLowerStripped);
     }
 
+    /// <summary>
+    /// 興奮度とアクション回数の条件から、各会話ボタンの解放状態を更新します。
+    /// </summary>
     private void UpdateTalkButtonStates()
     {
         var conditions = mainView.TalkButtonConditions;

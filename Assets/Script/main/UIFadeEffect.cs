@@ -1,15 +1,31 @@
 using UnityEngine;
 using System.Collections;
 
+/// <summary>
+/// 表示した UI をしばらくかけてフェードアウトさせるエフェクトです。
+/// </summary>
 [RequireComponent(typeof(CanvasGroup))]
 public class UIFadeEffect : MonoBehaviour
 {
+    /// <summary>
+    /// 表示されてから完全に消えるまでの秒数
+    /// </summary>
     [Tooltip("表示されてから完全に消えるまでの秒数")]
     [SerializeField] private float fadeDuration = 2.0f;
     
+    /// <summary>
+    /// 表示・非表示を切り替える CanvasGroup
+    /// </summary>
     private CanvasGroup _canvasGroup;
+
+    /// <summary>
+    /// 実行中のフェードアウト処理（未実行なら null）
+    /// </summary>
     private Coroutine _fadeCoroutine;
 
+    /// <summary>
+    /// CanvasGroup を取得し、初期状態を非表示（クリックも透過）にします。
+    /// </summary>
     private void Awake()
     {
         _canvasGroup = GetComponent<CanvasGroup>();
@@ -37,6 +53,9 @@ public class UIFadeEffect : MonoBehaviour
         _fadeCoroutine = StartCoroutine(FadeOutRoutine());
     }
 
+    /// <summary>
+    /// 一瞬で表示し、fadeDuration 秒かけて透明にします。
+    /// </summary>
     private IEnumerator FadeOutRoutine()
     {
         // 表示開始時は一瞬で不透明(1.0)にする
