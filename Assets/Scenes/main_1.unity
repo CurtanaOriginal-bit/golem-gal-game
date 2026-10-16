@@ -730,6 +730,7 @@ MonoBehaviour:
     - 7777777777777777777777
   isAutoTalkMode: 0
   autoTalkInterval: 2
+  audioMixer: {fileID: 24100000, guid: def9a64aee5239041a1f9f3d02860ff7, type: 2}
 --- !u!114 &40577216
 MonoBehaviour:
   m_ObjectHideFlags: 0

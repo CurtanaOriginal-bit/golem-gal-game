@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Audio;
 
 /// <summary>
 /// 着せる・脱がすの操作モードを表す列挙型
@@ -106,6 +107,12 @@ public class MainModel : MonoBehaviour
     /// オート会話で次のセリフへ進むまでの秒数
     /// </summary>
     [SerializeField] private float autoTalkInterval = 2.0f;
+
+    /// <summary>
+    /// 音量を反映する AudioMixer
+    /// </summary>
+    [Header("Audio Settings")]
+    [SerializeField] private AudioMixer audioMixer;
 
     /// <summary>
     /// アクションごとの実行回数（キーはアクション名）
@@ -680,11 +687,14 @@ public class MainModel : MonoBehaviour
     }
 
     /// <summary>
-    /// マスター音量を全体の音量（AudioListener）に反映します。
+    /// 現在の音量を AudioMixer に反映します（タイトル画面・導入画面と同じ反映方法）。
     /// </summary>
     private void ApplyVolume()
     {
-        AudioListener.volume = MasterVolume;
+        VolumeSettings.ApplyToMixer(audioMixer, VolumeSettings.MasterVolumeKey, MasterVolume);
+        VolumeSettings.ApplyToMixer(audioMixer, VolumeSettings.BGMVolumeKey, BGMVolume);
+        VolumeSettings.ApplyToMixer(audioMixer, VolumeSettings.SEVolumeKey, SEVolume);
+
         Debug.Log($"[MainModel] 音量適用 - Master: {MasterVolume}, BGM: {BGMVolume}, SE: {SEVolume}");
     }
 
