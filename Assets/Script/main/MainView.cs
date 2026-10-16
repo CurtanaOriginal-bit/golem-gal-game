@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System;
+using System.Collections.Generic;
 
 public class MainView : ViewBase
 {
@@ -16,7 +17,19 @@ public class MainView : ViewBase
     [Header("Talk UI")]
     [SerializeField] private UnityEngine.UI.Toggle autoTalkToggle;
     [SerializeField] private Button[] talkButtons;
+    [Tooltip("各トークボタンの解禁条件（talkButtonsと同じ要素数にしてください）")]
+    [SerializeField] private TalkButtonCondition[] talkButtonConditions;
     [SerializeField] private TalkWindowView talkWindowPrefab;
+
+    [System.Serializable]
+    public struct TalkButtonCondition
+    {
+        [Tooltip("解放に必要な最小の興奮度(Gauge1)")]
+        public float MinGaugeValue;
+
+        [Tooltip("追加で必要なアクション回数条件（空の場合は不要）")]
+        public List<RequiredActionCount> RequiredActionCounts;
+    }
 
     [Header("Settings Prefab UI")]
     [SerializeField] private SettingsView settingsPrefab;
@@ -79,8 +92,17 @@ public class MainView : ViewBase
         public float increaseAmount;
     }
 
-    [Header("Order Penetration UI")]
+    [Header("Order UI")]
     [SerializeField] private Button orderPenetrationButton;
+    [SerializeField] private TMPro.TextMeshProUGUI orderPenetrationText;
+    [SerializeField] private Button orderBlowjobButton;
+    [SerializeField] private TMPro.TextMeshProUGUI orderBlowjobText;
+
+    [Header("Order Animations")]
+    [SerializeField] private Texture2D[] penetrationTextures; // 挿入時のアニメーション画像
+
+    private Coroutine _penetrationAnimationCoroutine;
+    private Texture _defaultCharacterTexture;
 
     [System.Serializable]
     public struct HoverPopupData
@@ -121,6 +143,8 @@ public class MainView : ViewBase
     public event Action OnUpperAreaClicked;
     public event Action OnLowerAreaClicked;
     public event Action<int> OnLoopAnimationButtonClicked;
+    public event Action OnOrderPenetrationClicked;
+    public event Action OnOrderBlowjobClicked;
     
     // 設定画面が生成されたときにPresenterに通知するコールバック
     public event Action<SettingsView> OnSettingsOpened;
@@ -170,6 +194,12 @@ public class MainView : ViewBase
     {
         ValidateAttachments();
 
+        // ベース画像の初期テクスチャを保存しておく（アニメーション終了後の復元用）
+        if (characterRawImage != null)
+        {
+            _defaultCharacterTexture = characterRawImage.texture;
+        }
+
         // UIのToggle初期値をイベントとして通知し、Modelと同期させる
         if (autoTalkToggle != null)
         {
@@ -200,6 +230,8 @@ public class MainView : ViewBase
         if (stripButton != null) stripButton.onClick.AddListener(HandleStripClicked);
         if (upperAreaButton != null) upperAreaButton.onClick.AddListener(HandleUpperAreaClicked);
         if (lowerAreaButton != null) lowerAreaButton.onClick.AddListener(HandleLowerAreaClicked);
+        if (orderPenetrationButton != null) orderPenetrationButton.onClick.AddListener(() => OnOrderPenetrationClicked?.Invoke());
+        if (orderBlowjobButton != null) orderBlowjobButton.onClick.AddListener(() => OnOrderBlowjobClicked?.Invoke());
         
         if (talkButtons != null)
         {
@@ -254,6 +286,10 @@ public class MainView : ViewBase
                     var captureToggle = toggle;
                     captureToggle.triggerButton.onClick.AddListener(() =>
                     {
+                        // C#側の状態(OFF)とInspectorのイベント(ON)の競合を防ぐため、やめる状態の時はブロックする
+                        if (captureToggle.triggerButton == orderPenetrationButton && !_isPenetrationActiveView) return;
+                        if (captureToggle.triggerButton == orderBlowjobButton && !_isBlowjobActiveView) return;
+
                         if (captureToggle.targetToEnable != null) captureToggle.targetToEnable.enabled = true;
                         if (captureToggle.targetToDisable != null) captureToggle.targetToDisable.enabled = false;
                         Debug.Log($"[MainView] サブスクリーンの強制トグルを実行: {captureToggle.targetToEnable?.gameObject.name} をON, {captureToggle.targetToDisable?.gameObject.name} をOFF");
@@ -274,6 +310,8 @@ public class MainView : ViewBase
         if (stripButton != null) stripButton.onClick.RemoveListener(HandleStripClicked);
         if (upperAreaButton != null) upperAreaButton.onClick.RemoveListener(HandleUpperAreaClicked);
         if (lowerAreaButton != null) lowerAreaButton.onClick.RemoveListener(HandleLowerAreaClicked);
+        if (orderPenetrationButton != null) orderPenetrationButton.onClick.RemoveAllListeners();
+        if (orderBlowjobButton != null) orderBlowjobButton.onClick.RemoveAllListeners();
         
         if (talkButtons != null)
         {
@@ -404,6 +442,16 @@ public class MainView : ViewBase
         }
     }
 
+    public TalkButtonCondition[] TalkButtonConditions => talkButtonConditions;
+
+    public void SetTalkButtonInteractable(int index, bool isInteractable)
+    {
+        if (talkButtons != null && index >= 0 && index < talkButtons.Length && talkButtons[index] != null)
+        {
+            talkButtons[index].interactable = isInteractable;
+        }
+    }
+
     private void HandleDressClicked() => OnDressClicked?.Invoke();
     private void HandleStripClicked() => OnStripClicked?.Invoke();
     private void HandleUpperAreaClicked() => OnUpperAreaClicked?.Invoke();
@@ -449,6 +497,10 @@ public class MainView : ViewBase
         if (loopAnimations == null || index < 0 || index >= loopAnimations.Length) return;
         var animData = loopAnimations[index];
         if (animData.screenAnimations == null || animData.screenAnimations.Length == 0) return;
+
+        // C#側の状態(OFF)とInspectorのイベント(ON)の競合を防ぐため、やめる状態の時は再生をブロックする
+        if (animData.button == orderPenetrationButton && !_isPenetrationActiveView) return;
+        if (animData.button == orderBlowjobButton && !_isBlowjobActiveView) return;
 
         // 別のボタンが押された（または新規起動）の場合
         if (index != _activeAnimationIndex)
@@ -556,10 +608,65 @@ public class MainView : ViewBase
 
         _activeAnimationIndex = -1; // アクティブ状態をリセット
 
+        // 強制トグルで表示されたサブスクリーンも非表示にする
+        if (subScreenToggles != null)
+        {
+            foreach (var toggle in subScreenToggles)
+            {
+                if (toggle.targetToEnable != null) toggle.targetToEnable.enabled = false;
+            }
+        }
+
         // アニメーション専用のRawImageがある場合のみ非表示にする
         if (animationRawImage != null)
         {
             animationRawImage.enabled = false;
+        }
+    }
+
+    /// <summary>
+    /// 挿入時(Order_Penetration)のアニメーション再生・停止を制御します。
+    /// </summary>
+    public void PlayPenetrationAnimation(bool isPlay)
+    {
+        if (isPlay)
+        {
+            if (_penetrationAnimationCoroutine == null && penetrationTextures != null && penetrationTextures.Length > 0)
+            {
+                // 他のループアニメーションと競合しないよう停止させる
+                StopLoopAnimation();
+                _penetrationAnimationCoroutine = StartCoroutine(CoPenetrationAnimation());
+                Debug.Log("[MainView] 挿入アニメーションの再生を開始します。");
+            }
+        }
+        else
+        {
+            if (_penetrationAnimationCoroutine != null)
+            {
+                StopCoroutine(_penetrationAnimationCoroutine);
+                _penetrationAnimationCoroutine = null;
+                Debug.Log("[MainView] 挿入アニメーションを停止しました。");
+            }
+
+            // 元のベース画像に戻す
+            if (characterRawImage != null && _defaultCharacterTexture != null)
+            {
+                characterRawImage.texture = _defaultCharacterTexture;
+            }
+        }
+    }
+
+    private System.Collections.IEnumerator CoPenetrationAnimation()
+    {
+        int frameIndex = 0;
+        while (true)
+        {
+            if (characterRawImage != null && penetrationTextures != null && penetrationTextures.Length > 0)
+            {
+                characterRawImage.texture = penetrationTextures[frameIndex % penetrationTextures.Length];
+            }
+            yield return new WaitForSeconds(animationFrameRate);
+            frameIndex++;
         }
     }
 
@@ -673,6 +780,38 @@ public class MainView : ViewBase
     }
 
     /// <summary>
+    /// Order_Blowjobボタン（フェラチオボタン）の有効/無効を切り替えます
+    /// </summary>
+    public void SetOrderBlowjobInteractable(bool isInteractable)
+    {
+        if (orderBlowjobButton != null)
+        {
+            orderBlowjobButton.interactable = isInteractable;
+        }
+    }
+
+    private bool _isPenetrationActiveView;
+    private bool _isBlowjobActiveView;
+
+    /// <summary>
+    /// オーダーボタンのテキスト表示を更新します
+    /// </summary>
+    public void UpdateOrderButtonText(bool isPenetrationActive, bool isBlowjobActive)
+    {
+        _isPenetrationActiveView = isPenetrationActive;
+        _isBlowjobActiveView = isBlowjobActive;
+
+        if (orderPenetrationText != null)
+        {
+            orderPenetrationText.text = isPenetrationActive ? "やめる" : "挿入";
+        }
+        if (orderBlowjobText != null)
+        {
+            orderBlowjobText.text = isBlowjobActive ? "やめる" : "フェラチオ";
+        }
+    }
+
+    /// <summary>
     /// ポップアップの表示・非表示を切り替えます
     /// </summary>
     public void ShowHoverPopup(int index, bool isVisible)
@@ -712,6 +851,10 @@ public class MainView : ViewBase
         RawImage targetImage = (characterFaceImage != null) ? characterFaceImage : characterRawImage;
         if (targetImage != null)
         {
+            // 非表示状態（Inspectorでのチェック外れなど）を考慮し、明示的に表示をオンにする
+            targetImage.gameObject.SetActive(true);
+            targetImage.enabled = true;
+
             targetImage.texture = nextTexture;
             Debug.Log($"[MainView] 表情更新: インデックス {faceIndex} (適用先: {targetImage.gameObject.name})");
         }

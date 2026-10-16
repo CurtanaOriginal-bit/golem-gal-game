@@ -31,6 +31,8 @@ public class MainPresenter : MonoBehaviour
         mainView.OnUpperAreaClicked += HandleUpperAreaClicked;
         mainView.OnLowerAreaClicked += HandleLowerAreaClicked;
         mainView.OnLoopAnimationButtonClicked += HandleLoopAnimationButtonClicked;
+        mainView.OnOrderPenetrationClicked += HandleOrderPenetrationClicked;
+        mainView.OnOrderBlowjobClicked += HandleOrderBlowjobClicked;
 
         // 初期衣装状態の反映
         mainView.UpdateOutfitVisibility(mainModel.UpperBackVisible, mainModel.UpperFrontVisible, mainModel.LowerBackVisible, mainModel.LowerFrontVisible);
@@ -38,6 +40,7 @@ public class MainPresenter : MonoBehaviour
 
         mainModel.OnOutfitStateChanged += HandleOutfitStateChanged;
         mainModel.OnControlModeChanged += HandleControlModeChanged;
+        mainModel.OnOrderStateChanged += HandleOrderStateChanged;
 
         // ゲージの購読と初期化
         mainModel.OnGaugeChanged += HandleGaugeChanged;
@@ -47,6 +50,8 @@ public class MainPresenter : MonoBehaviour
         mainView.OnPopupHoverEntered += HandlePopupHoverEntered;
         mainView.OnPopupHoverExited += HandlePopupHoverExited;
         mainModel.InitializeGauges();
+        
+        UpdateTalkButtonStates();
     }
 
     private void OnDisable()
@@ -67,6 +72,8 @@ public class MainPresenter : MonoBehaviour
             mainView.OnUpperAreaClicked -= HandleUpperAreaClicked;
             mainView.OnLowerAreaClicked -= HandleLowerAreaClicked;
             mainView.OnLoopAnimationButtonClicked -= HandleLoopAnimationButtonClicked;
+            mainView.OnOrderPenetrationClicked -= HandleOrderPenetrationClicked;
+            mainView.OnOrderBlowjobClicked -= HandleOrderBlowjobClicked;
             mainView.OnOpeButtonClicked -= HandleOpeButtonClicked;
             mainView.OnGauge2IncreaseButtonClicked -= HandleGauge2IncreaseButtonClicked;
             mainView.OnPopupHoverEntered -= HandlePopupHoverEntered;
@@ -79,6 +86,7 @@ public class MainPresenter : MonoBehaviour
             mainModel.OnFaceChanged -= HandleFaceChanged;
             mainModel.OnOutfitStateChanged -= HandleOutfitStateChanged;
             mainModel.OnControlModeChanged -= HandleControlModeChanged;
+            mainModel.OnOrderStateChanged -= HandleOrderStateChanged;
         }
     }
 
@@ -129,6 +137,13 @@ public class MainPresenter : MonoBehaviour
     {
         mainView.StopLoopAnimation();
         mainModel.StartTalk(index);
+        
+        // トークボタンのアクション実行回数を記録 (1始まりのボタン番号)
+        mainModel.IncrementActionCount($"Conv_Button{index + 1}");
+        
+        // 条件が満たされたか状態を更新
+        UpdateTalkButtonStates();
+
         _autoTalkTimer = 0f;
         string text = mainModel.GetCurrentSentence();
         mainView.OpenTalkWindow(text);
@@ -234,6 +249,30 @@ public class MainPresenter : MonoBehaviour
         mainView.SetControlModeUI(mode);
     }
 
+    private void HandleOrderPenetrationClicked()
+    {
+        mainModel.TogglePenetration();
+    }
+
+    private void HandleOrderBlowjobClicked()
+    {
+        mainModel.ToggleBlowjob();
+    }
+
+    private void HandleOrderStateChanged(bool isPenetrationActive, bool isBlowjobActive)
+    {
+        mainView.UpdateOrderButtonText(isPenetrationActive, isBlowjobActive);
+        
+        // 挿入状態に応じてアニメーションを再生・停止
+        mainView.PlayPenetrationAnimation(isPenetrationActive);
+
+        // どちらもアクティブでない場合、現在進行中のアニメーションを強制停止する
+        if (!isPenetrationActive && !isBlowjobActive)
+        {
+            mainView.StopLoopAnimation();
+        }
+    }
+
     private void HandleLoopAnimationButtonClicked(int index)
     {
         mainView.PlayLoopAnimation(index);
@@ -265,6 +304,9 @@ public class MainPresenter : MonoBehaviour
 
         // ゲージ変動時にも挿入ボタンの有効判定を更新する
         UpdateOrderPenetrationButtonState();
+        
+        // 会話ボタンの解放状態を更新する
+        UpdateTalkButtonStates();
     }
 
     private void HandleFaceChanged(int faceIndex)
@@ -285,5 +327,40 @@ public class MainPresenter : MonoBehaviour
         bool isLowerStripped = !mainModel.LowerBackVisible && !mainModel.LowerFrontVisible;
 
         mainView.SetOrderPenetrationInteractable(isGaugeEnough && isLowerStripped);
+    }
+
+    private void UpdateTalkButtonStates()
+    {
+        var conditions = mainView.TalkButtonConditions;
+        if (conditions == null) return;
+
+        float currentGauge = mainModel.Gauge1Value;
+
+        for (int i = 0; i < conditions.Length; i++)
+        {
+            var cond = conditions[i];
+            bool isUnlocked = true;
+
+            if (currentGauge < cond.MinGaugeValue)
+            {
+                isUnlocked = false;
+            }
+            else
+            {
+                if (cond.RequiredActionCounts != null)
+                {
+                    foreach (var req in cond.RequiredActionCounts)
+                    {
+                        if (mainModel.GetActionCount(req.ActionKey) < req.MinCount)
+                        {
+                            isUnlocked = false;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            mainView.SetTalkButtonInteractable(i, isUnlocked);
+        }
     }
 }
