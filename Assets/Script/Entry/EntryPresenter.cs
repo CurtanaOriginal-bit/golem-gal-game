@@ -7,10 +7,10 @@ public class EntryPresenter : MonoBehaviour
 
     private void OnEnable()
     {
-        Debug.Log("[EntryPresenter] OnEnable() が呼び出されました。");
+        CustomLogger.LogDebug("OnEnable() が呼び出されました。");
         if (entryView == null || entryModel == null)
         {
-            Debug.LogError("EntryView または EntryModel がアタッチされていません。");
+            CustomLogger.LogError("EntryView または EntryModel がアタッチされていません。");
             return;
         }
 

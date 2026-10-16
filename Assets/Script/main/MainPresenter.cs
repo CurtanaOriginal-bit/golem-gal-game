@@ -7,10 +7,10 @@ public class MainPresenter : MonoBehaviour
 
     private void OnEnable()
     {
-        Debug.Log("[MainPresenter] OnEnable() が呼び出されました。");
+        CustomLogger.LogDebug("OnEnable() が呼び出されました。");
         if (mainView == null || mainModel == null)
         {
-            Debug.LogError("MainView または MainModel がアタッチされていません。");
+            CustomLogger.LogError("MainView または MainModel がアタッチされていません。");
             return;
         }
 

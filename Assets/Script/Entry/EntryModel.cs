@@ -60,7 +60,7 @@ public class EntryModel : MonoBehaviour
         _audioMixer.SetFloat(BGMVolumeKey, ToDecibel(BGMVolume));
         _audioMixer.SetFloat(SEVolumeKey, ToDecibel(SEVolume));
 
-        Debug.Log($"音量適用 - Master: {MasterVolume}, BGM: {BGMVolume}, SE: {SEVolume}");
+        CustomLogger.LogDebug($"音量適用 - Master: {MasterVolume}, BGM: {BGMVolume}, SE: {SEVolume}");
     }
 
     // スライダー値(0〜1)をdBに変換。0だと-∞になるので下限を設ける
@@ -71,7 +71,7 @@ public class EntryModel : MonoBehaviour
 
     public void QuitGame()
     {
-        Debug.Log("ゲームを終了します。");
+        CustomLogger.LogInfo("ゲームを終了します。");
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #else

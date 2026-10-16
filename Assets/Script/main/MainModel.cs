@@ -212,7 +212,7 @@ public class MainModel : MonoBehaviour
     private void ApplyVolume()
     {
         AudioListener.volume = MasterVolume;
-        Debug.Log($"[MainModel] 音量適用 - Master: {MasterVolume}, BGM: {BGMVolume}, SE: {SEVolume}");
+        CustomLogger.LogDebug($"音量適用 - Master: {MasterVolume}, BGM: {BGMVolume}, SE: {SEVolume}");
     }
 
     public void LoadTitleScene()
@@ -230,7 +230,7 @@ public class MainModel : MonoBehaviour
         if (talkGroups == null || talkIndex < 0 || talkIndex >= talkGroups.Length) return;
         _currentTalkIndex = talkIndex;
         _currentSentenceIndex = 0;
-        Debug.Log($"[MainModel] 会話開始 - TalkIndex: {talkIndex}");
+        CustomLogger.LogDebug($"会話開始 - TalkIndex: {talkIndex}");
     }
 
     public string GetCurrentSentence()
@@ -260,7 +260,7 @@ public class MainModel : MonoBehaviour
 
     public void EndTalk()
     {
-        Debug.Log($"[MainModel] 会話終了 - TalkIndex: {_currentTalkIndex}");
+        CustomLogger.LogDebug($"会話終了 - TalkIndex: {_currentTalkIndex}");
         _currentTalkIndex = -1;
         _currentSentenceIndex = -1;
     }
@@ -268,7 +268,7 @@ public class MainModel : MonoBehaviour
     public void SetControlMode(OutfitControlMode mode)
     {
         CurrentMode = mode;
-        Debug.Log($"[MainModel] 操作モード変更: {CurrentMode}");
+        CustomLogger.LogDebug($"操作モード変更: {CurrentMode}");
         OnOutfitStateChanged?.Invoke(); // 表示状態を更新させるため
         OnControlModeChanged?.Invoke(CurrentMode);
     }
@@ -309,7 +309,7 @@ public class MainModel : MonoBehaviour
 
         if (changed)
         {
-            Debug.Log($"[MainModel] 上半分レイヤ更新 - Back: {UpperBackVisible}, Front: {UpperFrontVisible}");
+            CustomLogger.LogDebug($"上半分レイヤ更新 - Back: {UpperBackVisible}, Front: {UpperFrontVisible}");
             OnOutfitStateChanged?.Invoke();
 
             OutfitActionType actionType = (CurrentMode == OutfitControlMode.Strip) ? OutfitActionType.StripUpper : OutfitActionType.DressUpper;
@@ -353,7 +353,7 @@ public class MainModel : MonoBehaviour
 
         if (changed)
         {
-            Debug.Log($"[MainModel] 下半分レイヤ更新 - Back: {LowerBackVisible}, Front: {LowerFrontVisible}");
+            CustomLogger.LogDebug($"下半分レイヤ更新 - Back: {LowerBackVisible}, Front: {LowerFrontVisible}");
             OnOutfitStateChanged?.Invoke();
 
             OutfitActionType actionType = (CurrentMode == OutfitControlMode.Strip) ? OutfitActionType.StripLower : OutfitActionType.DressLower;
@@ -375,7 +375,7 @@ public class MainModel : MonoBehaviour
         if (newIndex != CurrentFaceIndex)
         {
             CurrentFaceIndex = newIndex;
-            Debug.Log($"[MainModel] 表情変更: {CurrentFaceIndex} (Gauge1: {Gauge1Value})");
+            CustomLogger.LogDebug($"表情変更: {CurrentFaceIndex} (Gauge1: {Gauge1Value})");
             OnFaceChanged?.Invoke(CurrentFaceIndex);
         }
     }
@@ -385,7 +385,7 @@ public class MainModel : MonoBehaviour
         Gauge1Value = 0f;
         Gauge2Value = 0f;
         OnGaugeChanged?.Invoke(Gauge1Value, Gauge2Value);
-        Debug.Log($"[MainModel] ゲージ初期化 - Gauge1: {Gauge1Value}, Gauge2: {Gauge2Value}");
+        CustomLogger.LogDebug($"ゲージ初期化 - Gauge1: {Gauge1Value}, Gauge2: {Gauge2Value}");
         CurrentFaceIndex = CalculateFaceIndex(Gauge1Value);
         OnFaceChanged?.Invoke(CurrentFaceIndex);
     }
@@ -394,7 +394,7 @@ public class MainModel : MonoBehaviour
     {
         Gauge1Value = Mathf.Clamp(Gauge1Value + amount, 0f, MaxGaugeValue);
         OnGaugeChanged?.Invoke(Gauge1Value, Gauge2Value);
-        Debug.Log($"[MainModel] Gauge1増加: {Gauge1Value}/{MaxGaugeValue}");
+        CustomLogger.LogDebug($"Gauge1増加: {Gauge1Value}/{MaxGaugeValue}");
         UpdateFaceExpression();
     }
 
@@ -402,7 +402,7 @@ public class MainModel : MonoBehaviour
     {
         Gauge2Value = Mathf.Clamp(Gauge2Value + amount, 0f, MaxGaugeValue);
         OnGaugeChanged?.Invoke(Gauge1Value, Gauge2Value);
-        Debug.Log($"[MainModel] Gauge2増加: {Gauge2Value}/{MaxGaugeValue}");
+        CustomLogger.LogDebug($"Gauge2増加: {Gauge2Value}/{MaxGaugeValue}");
     }
 
     /// <summary>
@@ -417,7 +417,7 @@ public class MainModel : MonoBehaviour
             actionCounts[actionKey] = 0;
         }
         actionCounts[actionKey]++;
-        Debug.Log($"[MainModel] アクション回数増加: {actionKey} = {actionCounts[actionKey]}");
+        CustomLogger.LogDebug($"アクション回数増加: {actionKey} = {actionCounts[actionKey]}");
     }
 
     /// <summary>
