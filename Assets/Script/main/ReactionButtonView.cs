@@ -86,6 +86,24 @@ public class ReactionButtonView : MonoBehaviour, IReactionButtonView
     [SerializeField] private ReactionFeatureType featureType = ReactionFeatureType.None;
 
     /// <summary>
+    /// リアクション実行時に鳴らす効果音（トグルボタンの場合はONにした時に鳴らす）
+    /// </summary>
+    [Tooltip("リアクション実行時に鳴らす効果音。不要なら空欄。")]
+    [SerializeField] private AudioClip actionSE;
+
+    /// <summary>
+    /// 効果音を鳴らす秒数（長い素材でも先頭からこの秒数だけ鳴らす）
+    /// </summary>
+    [Tooltip("効果音を鳴らす秒数（長い素材でも先頭からこの秒数だけ鳴らします）")]
+    [SerializeField] private float actionSEDuration = 3f;
+
+    /// <summary>
+    /// トグルボタンがONの間ループ再生する効果音
+    /// </summary>
+    [Tooltip("トグルボタン（挿入・フェラチオ）がONの間ループ再生する効果音。ONにした時の効果音が鳴り終わってから始まります。")]
+    [SerializeField] private AudioClip loopSE;
+
+    /// <summary>
     /// 設定されたセリフ条件リストを取得します。
     /// </summary>
     public IReadOnlyList<ReactionCondition> ReactionConditions => reactionConditions;
@@ -114,6 +132,21 @@ public class ReactionButtonView : MonoBehaviour, IReactionButtonView
     /// このボタンの特殊機能のタイプを取得します。
     /// </summary>
     public ReactionFeatureType FeatureType => featureType;
+
+    /// <summary>
+    /// リアクション実行時に鳴らす効果音を取得します。
+    /// </summary>
+    public AudioClip ActionSE => actionSE;
+
+    /// <summary>
+    /// 効果音を鳴らす秒数を取得します。
+    /// </summary>
+    public float ActionSEDuration => actionSEDuration;
+
+    /// <summary>
+    /// トグルON中にループ再生する効果音を取得します。
+    /// </summary>
+    public AudioClip LoopSE => loopSE;
 
     private Button _button;
 

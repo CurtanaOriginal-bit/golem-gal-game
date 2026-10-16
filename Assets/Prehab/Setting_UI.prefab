@@ -1837,6 +1837,19 @@ MonoBehaviour:
       m_Calls: []
   radius: 10
   segments: 8
+--- !u!114 &496664950
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4871643045104092737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 009ce8c8574741d4877f6613d43a5750, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSE
+  excludedButtons: []
 --- !u!1 &4871643045104092737
 GameObject:
   m_ObjectHideFlags: 0
@@ -1850,6 +1863,7 @@ GameObject:
   - component: {fileID: 4952916933334466789}
   - component: {fileID: 1929190203572421558}
   - component: {fileID: 3892931784425845479}
+  - component: {fileID: 496664950}
   m_Layer: 5
   m_Name: Setting_UI
   m_TagString: Untagged

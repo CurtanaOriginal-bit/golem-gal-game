@@ -178,6 +178,45 @@ public class ReactionPresenter : MonoBehaviour
         {
             HideDialogueForFeature(ReactionFeatureType.BlowjobToggle);
         }
+
+        // ONになっているトグルのループ音に切り替える（どちらもOFFなら停止）
+        UpdateLoopSE(isPenetrationActive ? ReactionFeatureType.PenetrationToggle
+                   : isBlowjobActive ? ReactionFeatureType.BlowjobToggle
+                   : ReactionFeatureType.None);
+    }
+
+    /// <summary>
+    /// 指定されたFeatureTypeを持つボタンのループ音を再生します。Noneの場合はループ音を止めます。
+    /// </summary>
+    private void UpdateLoopSE(ReactionFeatureType activeFeature)
+    {
+        if (SEPlayer.Instance == null) return;
+
+        var buttonView = FindButtonForFeature(activeFeature);
+        if (buttonView == null || buttonView.LoopSE == null)
+        {
+            SEPlayer.Instance.StopLoop();
+            return;
+        }
+
+        // ONにした時の効果音が鳴り終わってからループを始める
+        float delay = buttonView.ActionSE != null ? buttonView.ActionSEDuration : 0f;
+        SEPlayer.Instance.PlayLoop(buttonView.LoopSE, delay);
+    }
+
+    /// <summary>
+    /// 指定されたFeatureTypeを持つボタンを探します（Noneや見つからない場合はnull）。
+    /// </summary>
+    private ReactionButtonView FindButtonForFeature(ReactionFeatureType featureType)
+    {
+        if (featureType == ReactionFeatureType.None || reactionButtonViews == null) return null;
+
+        for (int i = 0; i < reactionButtonViews.Length; i++)
+        {
+            var buttonView = reactionButtonViews[i];
+            if (buttonView != null && buttonView.FeatureType == featureType) return buttonView;
+        }
+        return null;
     }
 
     /// <summary>
@@ -237,6 +276,12 @@ public class ReactionPresenter : MonoBehaviour
         if (!string.IsNullOrEmpty(buttonView.ActionKeyToIncrement) && mainModel != null)
         {
             mainModel.IncrementActionCount(buttonView.ActionKeyToIncrement);
+        }
+
+        // 効果音が設定されていれば鳴らす
+        if (buttonView.ActionSE != null && SEPlayer.Instance != null)
+        {
+            SEPlayer.Instance.PlayAction(buttonView.ActionSE, buttonView.ActionSEDuration);
         }
 
         Debug.Log("[ReactionPresenter] リアクション実行。条件リストの数: " + (buttonView.ReactionConditions != null ? buttonView.ReactionConditions.Count : 0));
