@@ -70,6 +70,11 @@ public class StoryManager : MonoBehaviour
 
     private void Start()
     {
+        // 保存されている音量をAudioMixerに反映
+        ApplyVolume(MasterVolumeKey, PlayerPrefs.GetFloat(MasterVolumeKey, 1f));
+        ApplyVolume(BGMVolumeKey, PlayerPrefs.GetFloat(BGMVolumeKey, 1f));
+        ApplyVolume(SEVolumeKey, PlayerPrefs.GetFloat(SEVolumeKey, 1f));
+
         // 1. 暗転パネルの初期化（非表示・透明にしておく）
         if (fadeCanvasGroup != null)
         {
@@ -333,12 +338,18 @@ public class StoryManager : MonoBehaviour
     {
         PlayerPrefs.SetFloat(key, value);
         PlayerPrefs.Save();
+        ApplyVolume(key, value);
+    }
 
-        if (audioMixer != null)
-        {
-            // スライダー値(0〜1)をdBに変換。0だと-∞になるので下限を設ける
-            audioMixer.SetFloat(key, Mathf.Log10(Mathf.Clamp(value, 0.0001f, 1f)) * 20f);
-        }
+    /// <summary>
+    /// 音量をAudioMixerに反映します。
+    /// </summary>
+    private void ApplyVolume(string key, float value)
+    {
+        if (audioMixer == null) return;
+
+        // スライダー値(0〜1)をdBに変換。0だと-∞になるので下限を設ける
+        audioMixer.SetFloat(key, Mathf.Log10(Mathf.Clamp(value, 0.0001f, 1f)) * 20f);
     }
 
     /// <summary>
