@@ -2,14 +2,24 @@ using System;
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// クレジット画面の View です。閉じるボタンの操作を通知します。
+/// </summary>
 public class CreditView : MonoBehaviour
 {
+    /// <summary>
+    /// クレジット画面を閉じるボタン
+    /// </summary>
     [SerializeField] private Button closeCreditButton;
 
-    public Action OnCloseCreditClicked;
+    /// <summary>
+    /// 閉じるボタンが押されたときに呼ばれる処理
+    /// </summary>
+    public Action OnCloseCreditClicked { get; set; }
 
-    private bool _isInitializing = false;
-
+    /// <summary>
+    /// 有効化時に閉じるボタンのクリックイベントを購読します。
+    /// </summary>
     private void OnEnable()
     {
         if (closeCreditButton != null)
@@ -18,6 +28,9 @@ public class CreditView : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 無効化時に閉じるボタンのクリックイベントの購読を解除します。
+    /// </summary>
     private void OnDisable()
     {
         if (closeCreditButton != null)
@@ -26,6 +39,8 @@ public class CreditView : MonoBehaviour
         }
     }
 
-
+    /// <summary>
+    /// 閉じるボタンが押されたことを通知します。
+    /// </summary>
     private void HandleCloseCreditClicked() => OnCloseCreditClicked?.Invoke();
 }

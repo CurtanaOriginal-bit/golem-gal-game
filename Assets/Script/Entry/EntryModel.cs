@@ -1,77 +1,115 @@
 using UnityEngine;
 using UnityEngine.Audio;
-using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
+/// <summary>
+/// タイトル画面の Model です。音量・表示モードの読み込みと保存、ゲーム終了、シーン遷移を行います。
+/// </summary>
 public class EntryModel : MonoBehaviour
 {
-    private const string MasterVolumeKey = "MasterVolume";
-    private const string BGMVolumeKey = "BGMVolume";
-    private const string SEVolumeKey = "SEVolume";
+    /// <summary>
+    /// 導入シーンの名前
+    /// </summary>
+    private const string IntroductionSceneName = "Introduction";
 
-    public float MasterVolume { get; private set; }
-    public float BGMVolume { get; private set; }
-    public float SEVolume { get; private set; }
+    /// <summary>
+    /// 音量を反映する AudioMixer
+    /// </summary>
+    [FormerlySerializedAs("_audioMixer")]
+    [SerializeField] private AudioMixer audioMixer;
 
+    /// <summary>
+    /// 導入シーンへ遷移するためのローダー
+    /// </summary>
     private SceneLoader _introductionSceneLoader;
 
-    [SerializeField] private AudioMixer _audioMixer; // Inspectorで割り当てる
+    /// <summary>
+    /// マスター音量（0〜1）
+    /// </summary>
+    public float MasterVolume { get; private set; }
 
+    /// <summary>
+    /// BGM 音量（0〜1）
+    /// </summary>
+    public float BGMVolume { get; private set; }
+
+    /// <summary>
+    /// SE 音量（0〜1）
+    /// </summary>
+    public float SEVolume { get; private set; }
+
+    /// <summary>
+    /// フルスクリーン表示かどうか
+    /// </summary>
+    public bool IsFullScreen { get; private set; }
+
+    /// <summary>
+    /// 導入シーンへのローダーを作成します。
+    /// </summary>
     private void Awake()
     {
-        _introductionSceneLoader = new SceneLoader("Introduction");
+        _introductionSceneLoader = new SceneLoader(IntroductionSceneName);
     }
 
+    /// <summary>
+    /// 保存されている音量と表示モードを読み込み、反映します。
+    /// </summary>
     public void LoadSettings()
     {
-        MasterVolume = PlayerPrefs.GetFloat(MasterVolumeKey, 1f);
-        BGMVolume = PlayerPrefs.GetFloat(BGMVolumeKey, 1f);
-        SEVolume = PlayerPrefs.GetFloat(SEVolumeKey, 1f);
+        MasterVolume = VolumeSettings.Load(VolumeSettings.MasterVolumeKey);
+        BGMVolume = VolumeSettings.Load(VolumeSettings.BGMVolumeKey);
+        SEVolume = VolumeSettings.Load(VolumeSettings.SEVolumeKey);
         ApplyVolume();
+
+        IsFullScreen = ScreenModeSettings.Load();
+        ScreenModeSettings.Apply(IsFullScreen);
     }
 
+    /// <summary>
+    /// 表示モードを保存して反映します。
+    /// </summary>
+    public void SaveFullScreen(bool isFullScreen)
+    {
+        IsFullScreen = isFullScreen;
+        ScreenModeSettings.Save(isFullScreen);
+    }
+
+    /// <summary>
+    /// マスター音量を保存して反映します。
+    /// </summary>
     public void SaveMasterVolume(float value)
     {
         MasterVolume = value;
-        PlayerPrefs.SetFloat(MasterVolumeKey, value);
-        PlayerPrefs.Save();
+        VolumeSettings.Save(VolumeSettings.MasterVolumeKey, value);
         ApplyVolume();
     }
 
+    /// <summary>
+    /// BGM 音量を保存して反映します。
+    /// </summary>
     public void SaveBGMVolume(float value)
     {
         BGMVolume = value;
-        PlayerPrefs.SetFloat(BGMVolumeKey, value);
-        PlayerPrefs.Save();
+        VolumeSettings.Save(VolumeSettings.BGMVolumeKey, value);
         ApplyVolume();
     }
 
+    /// <summary>
+    /// SE 音量を保存して反映します。
+    /// </summary>
     public void SaveSEVolume(float value)
     {
         SEVolume = value;
-        PlayerPrefs.SetFloat(SEVolumeKey, value);
-        PlayerPrefs.Save();
+        VolumeSettings.Save(VolumeSettings.SEVolumeKey, value);
         ApplyVolume();
     }
 
-    private void ApplyVolume()
-    {
-        // 実際のサウンドマネージャーや AudioMixer に反映するロジック
-        _audioMixer.SetFloat(MasterVolumeKey, ToDecibel(MasterVolume));
-        _audioMixer.SetFloat(BGMVolumeKey, ToDecibel(BGMVolume));
-        _audioMixer.SetFloat(SEVolumeKey, ToDecibel(SEVolume));
-
-        Debug.Log($"音量適用 - Master: {MasterVolume}, BGM: {BGMVolume}, SE: {SEVolume}");
-    }
-
-    // スライダー値(0〜1)をdBに変換。0だと-∞になるので下限を設ける
-    private static float ToDecibel(float linear)
-    {
-        return Mathf.Log10(Mathf.Clamp(linear, 0.0001f, 1f)) * 20f;
-    }
-
+    /// <summary>
+    /// ゲームを終了します（エディタ上では再生を止めます）。
+    /// </summary>
     public void QuitGame()
     {
-        Debug.Log("ゲームを終了します。");
+        Debug.Log("[EntryModel] ゲームを終了します。");
 #if UNITY_EDITOR
         UnityEditor.EditorApplication.isPlaying = false;
 #else
@@ -79,24 +117,23 @@ public class EntryModel : MonoBehaviour
 #endif
     }
 
+    /// <summary>
+    /// 導入シーンへ遷移します。
+    /// </summary>
     public void LoadIntroductionScene()
     {
         _introductionSceneLoader.Load();
     }
 
-    // === インナークラス定義 ===
-    private class SceneLoader
+    /// <summary>
+    /// 現在の音量を AudioMixer に反映します。
+    /// </summary>
+    private void ApplyVolume()
     {
-        private readonly string _sceneName;
+        VolumeSettings.ApplyToMixer(audioMixer, VolumeSettings.MasterVolumeKey, MasterVolume);
+        VolumeSettings.ApplyToMixer(audioMixer, VolumeSettings.BGMVolumeKey, BGMVolume);
+        VolumeSettings.ApplyToMixer(audioMixer, VolumeSettings.SEVolumeKey, SEVolume);
 
-        public SceneLoader(string sceneName)
-        {
-            _sceneName = sceneName;
-        }
-
-        public void Load()
-        {
-            SceneManager.LoadScene(_sceneName);
-        }
+        Debug.Log($"[EntryModel] 音量適用 - Master: {MasterVolume}, BGM: {BGMVolume}, SE: {SEVolume}");
     }
 }

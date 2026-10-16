@@ -1,18 +1,34 @@
 using UnityEngine;
 using UnityEngine.UI;
 
+/// <summary>
+/// 角を丸めた四角形を描画する UI グラフィックです。
+/// </summary>
 [RequireComponent(typeof(CanvasRenderer))]
 public class RoundedImage : MaskableGraphic
 {
+    /// <summary>
+    /// 角の丸みの半径
+    /// </summary>
     [SerializeField] private float radius = 20f;
+
+    /// <summary>
+    /// 角を描く分割数（大きいほど滑らか）
+    /// </summary>
     [SerializeField] private int segments = 8; // 角の滑らかさ
 
+    /// <summary>
+    /// 角の丸みの半径を取得・設定します（設定時はメッシュを作り直します）。
+    /// </summary>
     public float Radius
     {
         get => radius;
         set { radius = value; SetVerticesDirty(); }
     }
 
+    /// <summary>
+    /// 角丸の四角形のメッシュを生成します。
+    /// </summary>
     protected override void OnPopulateMesh(VertexHelper vh)
     {
         vh.Clear();
@@ -73,7 +89,10 @@ public class RoundedImage : MaskableGraphic
         vh.AddTriangle(centerIndex, vertCount - 1, 1);
     }
 
-    private void AddQuad(VertexHelper vh, Vector2 min, Vector2 max, Color32 color)
+    /// <summary>
+    /// 指定した範囲の四角形を頂点ヘルパーに追加します。
+    /// </summary>
+    private static void AddQuad(VertexHelper vh, Vector2 min, Vector2 max, Color32 color)
     {
         UIVertex vert = UIVertex.simpleVert;
         vert.color = color;

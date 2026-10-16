@@ -1,0 +1,56 @@
+# コーディングルール（詳細は GitHub Wiki の「コーディングルール」を参照）
+root = true
+
+[*.cs]
+charset = utf-8
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 4
+
+# 波かっこは改行してから書く
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+
+# using の並び順（System を先頭に）
+dotnet_sort_system_directives_first = true
+
+# 既定値と同じ値で初期化しない（例: = false, = 0, = null）
+dotnet_diagnostic.CA1805.severity = suggestion
+
+# Dictionary は TryGetValue を使う
+dotnet_diagnostic.CA1854.severity = suggestion
+
+# ===== 命名ルール =====
+# private フィールドは [SerializeField] の有無で書き方が変わる（camelCase / _camelCase）ため、ここでは検査しない
+
+# 型・メソッド・プロパティ・イベント: PascalCase
+dotnet_naming_symbols.types_and_members.applicable_kinds = class, struct, enum, delegate, method, property, event
+dotnet_naming_style.pascal_case.capitalization = pascal_case
+dotnet_naming_rule.types_and_members_pascal.symbols = types_and_members
+dotnet_naming_rule.types_and_members_pascal.style = pascal_case
+dotnet_naming_rule.types_and_members_pascal.severity = suggestion
+
+# インターフェース: I + PascalCase
+dotnet_naming_symbols.interfaces.applicable_kinds = interface
+dotnet_naming_style.i_prefix.required_prefix = I
+dotnet_naming_style.i_prefix.capitalization = pascal_case
+dotnet_naming_rule.interfaces_i_prefix.symbols = interfaces
+dotnet_naming_rule.interfaces_i_prefix.style = i_prefix
+dotnet_naming_rule.interfaces_i_prefix.severity = suggestion
+
+# 定数: PascalCase
+dotnet_naming_symbols.constants.applicable_kinds = field
+dotnet_naming_symbols.constants.required_modifiers = const
+dotnet_naming_rule.constants_pascal.symbols = constants
+dotnet_naming_rule.constants_pascal.style = pascal_case
+dotnet_naming_rule.constants_pascal.severity = suggestion
+
+# 引数・ローカル変数: camelCase
+dotnet_naming_symbols.parameters_and_locals.applicable_kinds = parameter, local
+dotnet_naming_style.camel_case.capitalization = camel_case
+dotnet_naming_rule.parameters_and_locals_camel.symbols = parameters_and_locals
+dotnet_naming_rule.parameters_and_locals_camel.style = camel_case
+dotnet_naming_rule.parameters_and_locals_camel.severity = suggestion

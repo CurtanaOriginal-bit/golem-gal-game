@@ -30,17 +30,25 @@ public class ReactionPresenter : MonoBehaviour
     [Tooltip("監視対象となるReactionButtonViewの配列")]
     [SerializeField] private ReactionButtonView[] reactionButtonViews;
 
-
+    /// <summary>
+    /// 有効化時に各種イベントの購読を開始します。
+    /// </summary>
     private void OnEnable()
     {
         SubscribeEvents();
     }
 
+    /// <summary>
+    /// 無効化時に各種イベントの購読を解除します。
+    /// </summary>
     private void OnDisable()
     {
         UnsubscribeEvents();
     }
 
+    /// <summary>
+    /// 破棄時に各種イベントの購読を解除します。
+    /// </summary>
     private void OnDestroy()
     {
         // 念のため破棄時にも確実に購読解除を実施してメモリリークを防止
@@ -178,6 +186,45 @@ public class ReactionPresenter : MonoBehaviour
         {
             HideDialogueForFeature(ReactionFeatureType.BlowjobToggle);
         }
+
+        // ONになっているトグルのループ音に切り替える（どちらもOFFなら停止）
+        UpdateLoopSE(isPenetrationActive ? ReactionFeatureType.PenetrationToggle
+                   : isBlowjobActive ? ReactionFeatureType.BlowjobToggle
+                   : ReactionFeatureType.None);
+    }
+
+    /// <summary>
+    /// 指定されたFeatureTypeを持つボタンのループ音を再生します。Noneの場合はループ音を止めます。
+    /// </summary>
+    private void UpdateLoopSE(ReactionFeatureType activeFeature)
+    {
+        if (SEPlayer.Instance == null) return;
+
+        var buttonView = FindButtonForFeature(activeFeature);
+        if (buttonView == null || buttonView.LoopSE == null)
+        {
+            SEPlayer.Instance.StopLoop();
+            return;
+        }
+
+        // ONにした時の効果音が鳴り終わってからループを始める
+        float delay = buttonView.ActionSE != null ? buttonView.ActionSEDuration : 0f;
+        SEPlayer.Instance.PlayLoop(buttonView.LoopSE, delay);
+    }
+
+    /// <summary>
+    /// 指定されたFeatureTypeを持つボタンを探します（Noneや見つからない場合はnull）。
+    /// </summary>
+    private ReactionButtonView FindButtonForFeature(ReactionFeatureType featureType)
+    {
+        if (featureType == ReactionFeatureType.None || reactionButtonViews == null) return null;
+
+        for (int i = 0; i < reactionButtonViews.Length; i++)
+        {
+            var buttonView = reactionButtonViews[i];
+            if (buttonView != null && buttonView.FeatureType == featureType) return buttonView;
+        }
+        return null;
     }
 
     /// <summary>
@@ -239,6 +286,12 @@ public class ReactionPresenter : MonoBehaviour
             mainModel.IncrementActionCount(buttonView.ActionKeyToIncrement);
         }
 
+        // 効果音が設定されていれば鳴らす
+        if (buttonView.ActionSE != null && SEPlayer.Instance != null)
+        {
+            SEPlayer.Instance.PlayAction(buttonView.ActionSE, buttonView.ActionSEDuration);
+        }
+
         Debug.Log("[ReactionPresenter] リアクション実行。条件リストの数: " + (buttonView.ReactionConditions != null ? buttonView.ReactionConditions.Count : 0));
         
         float targetGaugeValue = buttonView.TargetGauge == TargetGaugeType.Gauge2 ? mainModel.Gauge2Value : mainModel.Gauge1Value;
@@ -251,7 +304,7 @@ public class ReactionPresenter : MonoBehaviour
     /// <param name="conditions">判定対象のセリフ条件リスト</param>
     /// <param name="currentGauge">判定に使用する現在のゲージ値</param>
     /// <param name="displayTarget">セリフの表示先ターゲット</param>
-    private void ShowDialogueIfConditionMet(System.Collections.Generic.IReadOnlyList<ReactionCondition> conditions, float currentGauge, ReactionDisplayTarget displayTarget = ReactionDisplayTarget.Default)
+    private void ShowDialogueIfConditionMet(IReadOnlyList<ReactionCondition> conditions, float currentGauge, ReactionDisplayTarget displayTarget = ReactionDisplayTarget.Default)
     {
         // ターゲット指定に応じて使用するテキストViewを切り替える（未設定ならデフォルトにフォールバック）
         ReactionTextView targetView = (displayTarget == ReactionDisplayTarget.AlternateScreen && alternateTextView != null) 

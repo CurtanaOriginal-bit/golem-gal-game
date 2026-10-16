@@ -1,154 +1,479 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.EventSystems;
-using System;
-using System.Collections.Generic;
 
+/// <summary>
+/// メイン画面の View です。各ボタンの操作の通知と、服装・表情・ゲージ・アニメーション・会話ウィンドウ・設定画面の表示を担当します。
+/// </summary>
 public class MainView : ViewBase
 {
+    /// <summary>
+    /// 設定画面を開くボタン
+    /// </summary>
     [Header("Settings UI")]
     [SerializeField] private Button settingsButton;
+
+    /// <summary>
+    /// タイトル画面へ戻るボタン
+    /// </summary>
     [SerializeField] private Button titleButton;
+
+    /// <summary>
+    /// エンディングへ進むボタン
+    /// </summary>
     [SerializeField] private Button endingButton;
 
+    /// <summary>
+    /// 再生中のアニメーションを止めるボタン
+    /// </summary>
     [Header("Cancel UI")]
     [SerializeField] private Button cancelButton;
 
+    /// <summary>
+    /// オート会話の ON/OFF を切り替えるトグル
+    /// </summary>
     [Header("Talk UI")]
-    [SerializeField] private UnityEngine.UI.Toggle autoTalkToggle;
+    [SerializeField] private Toggle autoTalkToggle;
+
+    /// <summary>
+    /// 会話ボタン（会話の番号順）
+    /// </summary>
     [SerializeField] private Button[] talkButtons;
+
+    /// <summary>
+    /// 各会話ボタンの解放条件（talkButtons と同じ順・同じ数）
+    /// </summary>
     [Tooltip("各トークボタンの解禁条件（talkButtonsと同じ要素数にしてください）")]
     [SerializeField] private TalkButtonCondition[] talkButtonConditions;
+
+    /// <summary>
+    /// 会話ウィンドウのプレハブ
+    /// </summary>
     [SerializeField] private TalkWindowView talkWindowPrefab;
 
-    [System.Serializable]
+    /// <summary>
+    /// 会話ボタンの解放条件です。
+    /// </summary>
+    [Serializable]
     public struct TalkButtonCondition
     {
+        /// <summary>
+        /// 解放に必要な最小の興奮度（Gauge1）
+        /// </summary>
         [Tooltip("解放に必要な最小の興奮度(Gauge1)")]
         public float MinGaugeValue;
 
+        /// <summary>
+        /// 解放に追加で必要なアクション回数の条件（空なら条件なし）
+        /// </summary>
         [Tooltip("追加で必要なアクション回数条件（空の場合は不要）")]
         public List<RequiredActionCount> RequiredActionCounts;
     }
 
+    /// <summary>
+    /// 設定画面のプレハブ
+    /// </summary>
     [Header("Settings Prefab UI")]
     [SerializeField] private SettingsView settingsPrefab;
+
+    /// <summary>
+    /// 設定画面・会話ウィンドウを生成する親の Canvas
+    /// </summary>
     [SerializeField] private RectTransform canvasTransform;
 
-    [System.Serializable]
+    /// <summary>
+    /// 1 つのスクリーンで再生するアニメーションの設定です。
+    /// </summary>
+    [Serializable]
     public struct ScreenAnimationData
     {
+        /// <summary>
+        /// アニメーションを表示するスクリーン
+        /// </summary>
         public RawImage targetScreen; // 表示先スクリーン
+
+        /// <summary>
+        /// そのスクリーンで順番に表示する画像
+        /// </summary>
         public Texture2D[] textures; // そのスクリーンで再生する画像
     }
 
-    [System.Serializable]
+    /// <summary>
+    /// ボタン 1 つに対応するアニメーションの設定です。
+    /// </summary>
+    [Serializable]
     public struct LoopAnimationData
     {
+        /// <summary>
+        /// アニメーションを再生するボタン
+        /// </summary>
         public Button button;
+
+        /// <summary>
+        /// 再生するスクリーンと画像の組み合わせ
+        /// </summary>
         public ScreenAnimationData[] screenAnimations; // スクリーンと画像のペア
+
+        /// <summary>
+        /// 自動でループ再生するかどうか（false なら押すたびにコマ送り）
+        /// </summary>
         public bool isLoop; // ループ再生するかどうか
     }
 
+    /// <summary>
+    /// スクリーン未指定のアニメーションを表示する RawImage
+    /// </summary>
     [Header("Loop Animation UI")]
     [SerializeField] private RawImage animationRawImage;
+
+    /// <summary>
+    /// アニメーション再生時に排他的に表示を切り替えるサブスクリーン
+    /// </summary>
     [SerializeField] private RawImage[] managedSubScreens; // 排他表示制御するためのサブスクリーン一覧
+
+    /// <summary>
+    /// ボタンごとのアニメーション設定
+    /// </summary>
     [SerializeField] private LoopAnimationData[] loopAnimations;
+
+    /// <summary>
+    /// アニメーションの 1 コマを表示する秒数
+    /// </summary>
     [SerializeField] private float animationFrameRate = 0.5f;
 
-    [System.Serializable]
+    /// <summary>
+    /// ボタンを押したときにサブスクリーンを強制的に切り替える設定です。
+    /// </summary>
+    [Serializable]
     public struct SubScreenToggleData
     {
+        /// <summary>
+        /// 切り替えのきっかけとなるボタン
+        /// </summary>
         public Button triggerButton;     // 押下するボタン
+
+        /// <summary>
+        /// 表示に切り替える RawImage
+        /// </summary>
         public RawImage targetToEnable;  // オン(チェックを入れる)にするRawImage
+
+        /// <summary>
+        /// 非表示に切り替える RawImage
+        /// </summary>
         public RawImage targetToDisable; // オフ(チェックを外す)にするRawImage
     }
 
+    /// <summary>
+    /// ボタンを押したときのサブスクリーンの強制切り替え設定
+    /// </summary>
     [Header("Exclusive Sub Screen Toggles")]
     [SerializeField] private SubScreenToggleData[] subScreenToggles; // ボタン押下時の強制トグル設定
 
+    /// <summary>
+    /// 「着せる」モードにするボタン
+    /// </summary>
     [Header("Dressing/Stripping UI")]
     [SerializeField] private Button dressButton;
+
+    /// <summary>
+    /// 「脱がす」モードにするボタン
+    /// </summary>
     [SerializeField] private Button stripButton;
+
+    /// <summary>
+    /// キャラクターの上半身のクリック判定
+    /// </summary>
     [SerializeField] private Button upperAreaButton;
+
+    /// <summary>
+    /// キャラクターの下半身のクリック判定
+    /// </summary>
     [SerializeField] private Button lowerAreaButton;
+
+    /// <summary>
+    /// キャラクターのベース画像（画像1）
+    /// </summary>
     [SerializeField] private RawImage characterRawImage; // ベース画像 (画像1)
+
+    /// <summary>
+    /// 上半身の奥側の服の画像（画像3）
+    /// </summary>
     [SerializeField] private RawImage layerUpperBack;    // 画像3 (上半分・背面)
+
+    /// <summary>
+    /// 上半身の手前側の服の画像（画像2）
+    /// </summary>
     [SerializeField] private RawImage layerUpperFront;   // 画像2 (上半分・前面)
+
+    /// <summary>
+    /// 下半身の奥側の服の画像（画像5）
+    /// </summary>
     [SerializeField] private RawImage layerLowerBack;    // 画像5 (下半分・背面)
+
+    /// <summary>
+    /// 下半身の手前側の服の画像（画像4）
+    /// </summary>
     [SerializeField] private RawImage layerLowerFront;   // 画像4 (下半分・前面)
 
+    /// <summary>
+    /// 表情を表示する RawImage（未設定ならベース画像を差し替えます）
+    /// </summary>
     [Header("Face Expression UI")]
     [SerializeField] private RawImage characterFaceImage; // 表情画像 (顔部分の重ね合わせ、未設定の場合は characterRawImage を差し替える)
+
+    /// <summary>
+    /// 表情ごとの画像（0:通常, 1〜3:差分）
+    /// </summary>
     [SerializeField] private Texture2D[] faceTextures;   // 表情差分テクスチャ (0:元の表情, 1:差分1, 2:差分2, 3:差分3)
 
-    private SettingsView activeSettingsInstance;
-    private TalkWindowView activeTalkWindowInstance;
+    /// <summary>
+    /// 開いている設定画面（開いていなければ null）
+    /// </summary>
+    private SettingsView _activeSettingsInstance;
 
-    [System.Serializable]
+    /// <summary>
+    /// 開いている会話ウィンドウ（開いていなければ null）
+    /// </summary>
+    private TalkWindowView _activeTalkWindowInstance;
+
+    /// <summary>
+    /// ゲージを増やすボタンと、その増加量の組み合わせです。
+    /// </summary>
+    [Serializable]
     public struct GaugeIncreaseData
     {
+        /// <summary>
+        /// ゲージを増やすボタン
+        /// </summary>
         public Button button;
+
+        /// <summary>
+        /// ボタンを押したときのゲージの増加量
+        /// </summary>
         public float increaseAmount;
     }
 
+    /// <summary>
+    /// 挿入ボタン
+    /// </summary>
     [Header("Order UI")]
     [SerializeField] private Button orderPenetrationButton;
-    [SerializeField] private TMPro.TextMeshProUGUI orderPenetrationText;
-    [SerializeField] private Button orderBlowjobButton;
-    [SerializeField] private TMPro.TextMeshProUGUI orderBlowjobText;
 
+    /// <summary>
+    /// 挿入ボタンの表示テキスト
+    /// </summary>
+    [SerializeField] private TextMeshProUGUI orderPenetrationText;
+
+    /// <summary>
+    /// フェラボタン
+    /// </summary>
+    [SerializeField] private Button orderBlowjobButton;
+
+    /// <summary>
+    /// フェラボタンの表示テキスト
+    /// </summary>
+    [SerializeField] private TextMeshProUGUI orderBlowjobText;
+
+    /// <summary>
+    /// 挿入中にベース画像で再生するアニメーションの画像
+    /// </summary>
     [Header("Order Animations")]
     [SerializeField] private Texture2D[] penetrationTextures; // 挿入時のアニメーション画像
 
+    /// <summary>
+    /// 実行中の挿入アニメーション（未実行なら null）
+    /// </summary>
     private Coroutine _penetrationAnimationCoroutine;
+
+    /// <summary>
+    /// ベース画像の初期テクスチャ（アニメーション終了後に戻すため）
+    /// </summary>
     private Texture _defaultCharacterTexture;
 
-    [System.Serializable]
+    /// <summary>
+    /// 実行中のループアニメーション（未実行なら null）
+    /// </summary>
+    private Coroutine _activeLoopCoroutine;
+
+    /// <summary>
+    /// 再生中のアニメーションの番号（再生していなければ -1）
+    /// </summary>
+    private int _activeAnimationIndex = -1;
+
+    /// <summary>
+    /// アニメーションごとの表示中の画像の番号
+    /// </summary>
+    private int[] _currentAnimationIndices;
+
+    /// <summary>
+    /// 挿入中かどうか（View 側で保持している状態）
+    /// </summary>
+    private bool _isPenetrationActiveView;
+
+    /// <summary>
+    /// フェラ中かどうか（View 側で保持している状態）
+    /// </summary>
+    private bool _isBlowjobActiveView;
+
+    /// <summary>
+    /// ホバー時にポップアップを表示する設定です。
+    /// </summary>
+    [Serializable]
     public struct HoverPopupData
     {
+        /// <summary>
+        /// ホバーを検知する UI
+        /// </summary>
         [Tooltip("ホバーを検知する対象のUI（ボタンなど）")]
         public GameObject targetArea;
+
+        /// <summary>
+        /// 表示・非表示を切り替えるポップアップ
+        /// </summary>
         [Tooltip("表示・非表示を切り替えるポップアップのGameObject")]
         public GameObject popupObject;
     }
 
+    /// <summary>
+    /// ホバー時のポップアップ設定
+    /// </summary>
     [Header("Hover Popup UI")]
     [SerializeField] private HoverPopupData[] hoverPopups;
 
+    /// <summary>
+    /// 興奮度（Gauge1）のゲージの中身の画像
+    /// </summary>
     [Header("Gauge UI")]
     [SerializeField] private Image gaugeInside1;
+
+    /// <summary>
+    /// 射精感（Gauge2）のゲージの中身の画像
+    /// </summary>
     [SerializeField] private Image gaugeInside2;
+
+    /// <summary>
+    /// おさわりパネル（配下のボタンが興奮度を増やします）
+    /// </summary>
     [SerializeField] private Transform contOpeTransform;
+
+    /// <summary>
+    /// おさわりボタン 1 回あたりの興奮度の増加量（個別設定がないボタン用）
+    /// </summary>
     [SerializeField] private float defaultGaugeIncreaseAmount = 10f;
+
+    /// <summary>
+    /// 興奮度を増やすボタンの個別設定（増加量を変えたいボタン用）
+    /// </summary>
     [SerializeField] private GaugeIncreaseData[] customGaugeIncreaseButtons;
+
+    /// <summary>
+    /// 射精感を増やすボタンと増加量の設定
+    /// </summary>
     [SerializeField] private GaugeIncreaseData[] customGauge2IncreaseButtons;
 
+    /// <summary>
+    /// 興奮度を増やすボタンが押されたときに発火するイベント（引数は増加量）
+    /// </summary>
     public event Action<float> OnOpeButtonClicked;
+
+    /// <summary>
+    /// 射精感を増やすボタンが押されたときに発火するイベント（引数は増加量）
+    /// </summary>
     public event Action<float> OnGauge2IncreaseButtonClicked;
 
+    /// <summary>
+    /// ポップアップ対象にカーソルが乗ったときに発火するイベント（引数は番号）
+    /// </summary>
     public event Action<int> OnPopupHoverEntered;
+
+    /// <summary>
+    /// ポップアップ対象からカーソルが外れたときに発火するイベント（引数は番号）
+    /// </summary>
     public event Action<int> OnPopupHoverExited;
 
     // Presenterが登録するコールバック
+    /// <summary>
+    /// 設定ボタンが押されたときに発火するイベント
+    /// </summary>
     public event Action OnSettingsClicked;
+
+    /// <summary>
+    /// タイトルボタンが押されたときに発火するイベント
+    /// </summary>
     public event Action OnTitleClicked;
+
+    /// <summary>
+    /// エンディングボタンが押されたときに発火するイベント
+    /// </summary>
     public event Action OnEndingClicked;
+
+    /// <summary>
+    /// キャンセルボタンが押されたときに発火するイベント
+    /// </summary>
     public event Action OnCancelClicked;
+
+    /// <summary>
+    /// 会話ボタンが押されたときに発火するイベント（引数は会話の番号）
+    /// </summary>
     public event Action<int> OnTalkButtonClicked;
+
+    /// <summary>
+    /// 会話ウィンドウがクリックされたときに発火するイベント
+    /// </summary>
     public event Action OnTalkWindowClicked;
+
+    /// <summary>
+    /// オート会話トグルが切り替えられたときに発火するイベント
+    /// </summary>
     public event Action<bool> OnAutoTalkToggleChanged;
+
+    /// <summary>
+    /// 「着せる」ボタンが押されたときに発火するイベント
+    /// </summary>
     public event Action OnDressClicked;
+
+    /// <summary>
+    /// 「脱がす」ボタンが押されたときに発火するイベント
+    /// </summary>
     public event Action OnStripClicked;
+
+    /// <summary>
+    /// 上半身がクリックされたときに発火するイベント
+    /// </summary>
     public event Action OnUpperAreaClicked;
+
+    /// <summary>
+    /// 下半身がクリックされたときに発火するイベント
+    /// </summary>
     public event Action OnLowerAreaClicked;
+
+    /// <summary>
+    /// アニメーションボタンが押されたときに発火するイベント（引数はアニメーションの番号）
+    /// </summary>
     public event Action<int> OnLoopAnimationButtonClicked;
+
+    /// <summary>
+    /// 挿入ボタンが押されたときに発火するイベント
+    /// </summary>
     public event Action OnOrderPenetrationClicked;
+
+    /// <summary>
+    /// フェラボタンが押されたときに発火するイベント
+    /// </summary>
     public event Action OnOrderBlowjobClicked;
     
     // 設定画面が生成されたときにPresenterに通知するコールバック
+    /// <summary>
+    /// 設定画面を生成したときに発火するイベント
+    /// </summary>
     public event Action<SettingsView> OnSettingsOpened;
 
+    /// <summary>
+    /// 未設定のゲージ・ボタンをシーンから探して補い、ゲージ画像を横方向の塗りつぶし表示に設定します。
+    /// </summary>
     private void Awake()
     {
         // 自動アタッチのフォールバック
@@ -179,7 +504,10 @@ public class MainView : ViewBase
         SetupGaugeImage(gaugeInside2);
     }
 
-    private void SetupGaugeImage(Image img)
+    /// <summary>
+    /// ゲージ画像を左から横方向に塗りつぶす表示に設定します。
+    /// </summary>
+    private static void SetupGaugeImage(Image img)
     {
         if (img != null)
         {
@@ -190,6 +518,9 @@ public class MainView : ViewBase
         }
     }
 
+    /// <summary>
+    /// 必須の参照を確認し、ベース画像の初期テクスチャを保存して、オート会話トグルの初期値を通知します。
+    /// </summary>
     private void Start()
     {
         ValidateAttachments();
@@ -207,6 +538,9 @@ public class MainView : ViewBase
         }
     }
 
+    /// <summary>
+    /// 服装まわりの必須の参照が設定されているか確認し、未設定ならエラーを出します。
+    /// </summary>
     private void ValidateAttachments()
     {
         if (dressButton == null) Debug.LogError("[MainView] dressButton がアタッチされていません。");
@@ -219,6 +553,9 @@ public class MainView : ViewBase
         if (layerLowerFront == null) Debug.LogError("[MainView] layerLowerFront (画像4) がアタッチされていません。");
     }
 
+    /// <summary>
+    /// 有効化時に各ボタン・トグル・ホバー判定のイベントを購読します。
+    /// </summary>
     private void OnEnable()
     {
         RegisterContOpeButtons();
@@ -299,6 +636,9 @@ public class MainView : ViewBase
         }
     }
 
+    /// <summary>
+    /// 無効化時に各ボタン・トグル・ホバー判定のイベントの購読を解除します。
+    /// </summary>
     private void OnDisable()
     {
         UnregisterContOpeButtons();
@@ -368,30 +708,62 @@ public class MainView : ViewBase
         }
     }
 
+    /// <summary>
+    /// ポップアップ対象にカーソルが乗ったことを通知します。
+    /// </summary>
     private void HandlePopupHoverEntered(int index) => OnPopupHoverEntered?.Invoke(index);
+
+    /// <summary>
+    /// ポップアップ対象からカーソルが外れたことを通知します。
+    /// </summary>
     private void HandlePopupHoverExited(int index) => OnPopupHoverExited?.Invoke(index);
 
+    /// <summary>
+    /// 設定ボタンが押されたことを通知します。
+    /// </summary>
     private void HandleSettingsClicked() => OnSettingsClicked?.Invoke();
 
+    /// <summary>
+    /// タイトルボタンが押されたことを通知します。
+    /// </summary>
     private void HandleTitleClicked() => OnTitleClicked?.Invoke();
 
+    /// <summary>
+    /// エンディングボタンが押されたことを通知します。
+    /// </summary>
     private void HandleEndingClicked() => OnEndingClicked?.Invoke();
 
+    /// <summary>
+    /// キャンセルボタンが押されたことを通知します。
+    /// </summary>
     private void HandleCancelClicked() => OnCancelClicked?.Invoke();
 
+    /// <summary>
+    /// 会話ウィンドウがクリックされたことを通知します。
+    /// </summary>
     private void HandleTalkWindowClicked() => OnTalkWindowClicked?.Invoke();
 
-    public bool IsSettingsPanelActive => activeSettingsInstance != null;
-    public bool IsTalkWindowActive => activeTalkWindowInstance != null;
+    /// <summary>
+    /// 設定画面を開いているかどうか
+    /// </summary>
+    public bool IsSettingsPanelActive => _activeSettingsInstance != null;
 
+    /// <summary>
+    /// 会話ウィンドウを開いているかどうか
+    /// </summary>
+    public bool IsTalkWindowActive => _activeTalkWindowInstance != null;
+
+    /// <summary>
+    /// 設定画面を生成して開きます（すでに開いていれば何もしません）。
+    /// </summary>
     public void OpenSettings()
     {
-        if (activeSettingsInstance != null) return;
+        if (_activeSettingsInstance != null) return;
 
         if (settingsPrefab != null && canvasTransform != null)
         {
-            activeSettingsInstance = Instantiate(settingsPrefab, canvasTransform);
-            OnSettingsOpened?.Invoke(activeSettingsInstance);
+            _activeSettingsInstance = Instantiate(settingsPrefab, canvasTransform);
+            OnSettingsOpened?.Invoke(_activeSettingsInstance);
         }
         else
         {
@@ -399,24 +771,30 @@ public class MainView : ViewBase
         }
     }
 
+    /// <summary>
+    /// 設定画面を破棄して閉じます。
+    /// </summary>
     public void CloseSettings()
     {
-        if (activeSettingsInstance != null)
+        if (_activeSettingsInstance != null)
         {
-            Destroy(activeSettingsInstance.gameObject);
-            activeSettingsInstance = null;
+            Destroy(_activeSettingsInstance.gameObject);
+            _activeSettingsInstance = null;
         }
     }
 
+    /// <summary>
+    /// 会話ウィンドウを生成し、最初のセリフを表示します（すでに開いていれば何もしません）。
+    /// </summary>
     public void OpenTalkWindow(string initialText)
     {
-        if (activeTalkWindowInstance != null) return;
+        if (_activeTalkWindowInstance != null) return;
 
         if (talkWindowPrefab != null && canvasTransform != null)
         {
-            activeTalkWindowInstance = Instantiate(talkWindowPrefab, canvasTransform);
-            activeTalkWindowInstance.SetText(initialText);
-            activeTalkWindowInstance.OnWindowClicked += HandleTalkWindowClicked;
+            _activeTalkWindowInstance = Instantiate(talkWindowPrefab, canvasTransform);
+            _activeTalkWindowInstance.SetText(initialText);
+            _activeTalkWindowInstance.OnWindowClicked += HandleTalkWindowClicked;
         }
         else
         {
@@ -424,26 +802,38 @@ public class MainView : ViewBase
         }
     }
 
+    /// <summary>
+    /// 会話ウィンドウのセリフを更新します。
+    /// </summary>
     public void UpdateTalkText(string text)
     {
-        if (activeTalkWindowInstance != null)
+        if (_activeTalkWindowInstance != null)
         {
-            activeTalkWindowInstance.SetText(text);
+            _activeTalkWindowInstance.SetText(text);
         }
     }
 
+    /// <summary>
+    /// 会話ウィンドウを破棄して閉じます。
+    /// </summary>
     public void CloseTalkWindow()
     {
-        if (activeTalkWindowInstance != null)
+        if (_activeTalkWindowInstance != null)
         {
-            activeTalkWindowInstance.OnWindowClicked -= HandleTalkWindowClicked;
-            Destroy(activeTalkWindowInstance.gameObject);
-            activeTalkWindowInstance = null;
+            _activeTalkWindowInstance.OnWindowClicked -= HandleTalkWindowClicked;
+            Destroy(_activeTalkWindowInstance.gameObject);
+            _activeTalkWindowInstance = null;
         }
     }
 
+    /// <summary>
+    /// 各会話ボタンの解放条件
+    /// </summary>
     public TalkButtonCondition[] TalkButtonConditions => talkButtonConditions;
 
+    /// <summary>
+    /// 指定した会話ボタンを押せる状態・押せない状態にします。
+    /// </summary>
     public void SetTalkButtonInteractable(int index, bool isInteractable)
     {
         if (talkButtons != null && index >= 0 && index < talkButtons.Length && talkButtons[index] != null)
@@ -452,11 +842,29 @@ public class MainView : ViewBase
         }
     }
 
+    /// <summary>
+    /// 「着せる」ボタンが押されたことを通知します。
+    /// </summary>
     private void HandleDressClicked() => OnDressClicked?.Invoke();
+
+    /// <summary>
+    /// 「脱がす」ボタンが押されたことを通知します。
+    /// </summary>
     private void HandleStripClicked() => OnStripClicked?.Invoke();
+
+    /// <summary>
+    /// 上半身がクリックされたことを通知します。
+    /// </summary>
     private void HandleUpperAreaClicked() => OnUpperAreaClicked?.Invoke();
+
+    /// <summary>
+    /// 下半身がクリックされたことを通知します。
+    /// </summary>
     private void HandleLowerAreaClicked() => OnLowerAreaClicked?.Invoke();
 
+    /// <summary>
+    /// 服のレイヤーごとに表示・非表示を切り替えます。
+    /// </summary>
     public void UpdateOutfitVisibility(bool upperBack, bool upperFront, bool lowerBack, bool lowerFront)
     {
         if (layerUpperBack != null) layerUpperBack.gameObject.SetActive(upperBack);
@@ -465,6 +873,9 @@ public class MainView : ViewBase
         if (layerLowerFront != null) layerLowerFront.gameObject.SetActive(lowerFront);
     }
 
+    /// <summary>
+    /// 操作モードに合わせて、クリック判定と「着せる」「脱がす」ボタンの押せる状態を切り替えます。
+    /// </summary>
     public void SetControlModeUI(OutfitControlMode mode)
     {
         bool isEnabled = mode != OutfitControlMode.None;
@@ -478,10 +889,9 @@ public class MainView : ViewBase
         Debug.Log($"[MainView] UI状態更新 - 操作有効: {isEnabled}, モード: {mode}");
     }
 
-    private Coroutine _activeLoopCoroutine;
-    private int _activeAnimationIndex = -1; // 現在アクティブなアニメーションボタンのインデックス
-    private int[] _currentAnimationIndices; // 各アニメーションごとの現在の再生画像インデックス
-
+    /// <summary>
+    /// アニメーションごとの画像番号の配列を、まだなければ作成します。
+    /// </summary>
     private void InitializeAnimationIndicesIfNeeded()
     {
         if (_currentAnimationIndices == null && loopAnimations != null)
@@ -490,6 +900,9 @@ public class MainView : ViewBase
         }
     }
 
+    /// <summary>
+    /// 指定したアニメーションを再生します。同じボタンをもう一度押すと、ループなしならコマ送りします。
+    /// </summary>
     public void PlayLoopAnimation(int index)
     {
         InitializeAnimationIndicesIfNeeded();
@@ -547,7 +960,10 @@ public class MainView : ViewBase
         }
     }
 
-    private System.Collections.IEnumerator CoLoopAnimation(ScreenAnimationData[] screenAnimations)
+    /// <summary>
+    /// animationFrameRate 秒ごとに画像を切り替えてアニメーションをループ再生します。
+    /// </summary>
+    private IEnumerator CoLoopAnimation(ScreenAnimationData[] screenAnimations)
     {
         int frameIndex = 0;
         while (true)
@@ -574,6 +990,9 @@ public class MainView : ViewBase
         }
     }
 
+    /// <summary>
+    /// ループアニメーションを止め、アニメーション用のスクリーンをすべて非表示にします。
+    /// </summary>
     public void StopLoopAnimation()
     {
         if (_activeLoopCoroutine != null)
@@ -656,7 +1075,10 @@ public class MainView : ViewBase
         }
     }
 
-    private System.Collections.IEnumerator CoPenetrationAnimation()
+    /// <summary>
+    /// 挿入中のアニメーションをベース画像でループ再生します。
+    /// </summary>
+    private IEnumerator CoPenetrationAnimation()
     {
         int frameIndex = 0;
         while (true)
@@ -670,6 +1092,9 @@ public class MainView : ViewBase
         }
     }
 
+    /// <summary>
+    /// おさわりパネルのボタンと個別設定のボタンに、ゲージを増やすイベントを登録します。
+    /// </summary>
     private void RegisterContOpeButtons()
     {
         if (contOpeTransform != null)
@@ -720,6 +1145,9 @@ public class MainView : ViewBase
         }
     }
 
+    /// <summary>
+    /// ゲージを増やすボタンのイベントをすべて解除します。
+    /// </summary>
     private void UnregisterContOpeButtons()
     {
         if (contOpeTransform != null)
@@ -754,6 +1182,9 @@ public class MainView : ViewBase
         }
     }
 
+    /// <summary>
+    /// ゲージの塗りつぶし量（0〜1）を更新します。
+    /// </summary>
     public void UpdateGaugeFill(float gauge1FillAmount, float gauge2FillAmount)
     {
         if (gaugeInside1 != null)
@@ -790,9 +1221,6 @@ public class MainView : ViewBase
         }
     }
 
-    private bool _isPenetrationActiveView;
-    private bool _isBlowjobActiveView;
-
     /// <summary>
     /// オーダーボタンのテキスト表示を更新します
     /// </summary>
@@ -826,6 +1254,9 @@ public class MainView : ViewBase
         }
     }
 
+    /// <summary>
+    /// キャラクターの表情を指定した番号の画像に切り替えます。
+    /// </summary>
     public void UpdateFace(int faceIndex)
     {
         if (faceTextures == null || faceTextures.Length == 0)
@@ -863,17 +1294,4 @@ public class MainView : ViewBase
             Debug.LogWarning("[MainView] 表情適用先(characterFaceImage/characterRawImage)がありません。");
         }
     }
-}
-
-/// <summary>
-/// マウスホバーイベント（IPointerEnterHandler / IPointerExitHandler）を検知して通知するユーティリティクラス
-/// </summary>
-public class PointerEventForwarder : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
-{
-    public Action<int> OnEnter;
-    public Action<int> OnExit;
-    public int Index;
-
-    public void OnPointerEnter(PointerEventData eventData) => OnEnter?.Invoke(Index);
-    public void OnPointerExit(PointerEventData eventData) => OnExit?.Invoke(Index);
 }
