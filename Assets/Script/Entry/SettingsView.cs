@@ -11,11 +11,13 @@ public class SettingsView : MonoBehaviour
     [SerializeField] private Button masterMuteButton;
     [SerializeField] private Button bgmMuteButton;
     [SerializeField] private Button seMuteButton;
+    [SerializeField] private Toggle fullScreenToggle;
 
     public Action OnCloseSettingsClicked;
     public Action<float> OnMasterVolumeChanged;
     public Action<float> OnBgmVolumeChanged;
     public Action<float> OnSeVolumeChanged;
+    public Action<bool> OnFullScreenChanged;
 
     private bool _isInitializing = false;
 
@@ -29,6 +31,8 @@ public class SettingsView : MonoBehaviour
         if (masterMuteButton != null) masterMuteButton.onClick.AddListener(MuteMaster);
         if (bgmMuteButton != null) bgmMuteButton.onClick.AddListener(MuteBgm);
         if (seMuteButton != null) seMuteButton.onClick.AddListener(MuteSe);
+
+        if (fullScreenToggle != null) fullScreenToggle.onValueChanged.AddListener(HandleFullScreenChanged);
     }
 
     private void OnDisable()
@@ -41,6 +45,8 @@ public class SettingsView : MonoBehaviour
         if (masterMuteButton != null) masterMuteButton.onClick.RemoveListener(MuteMaster);
         if (bgmMuteButton != null) bgmMuteButton.onClick.RemoveListener(MuteBgm);
         if (seMuteButton != null) seMuteButton.onClick.RemoveListener(MuteSe);
+
+        if (fullScreenToggle != null) fullScreenToggle.onValueChanged.RemoveListener(HandleFullScreenChanged);
     }
 
     public void InitializeSliders(float master, float bgm, float se)
@@ -49,6 +55,13 @@ public class SettingsView : MonoBehaviour
         if (masterVolumeSlider != null) masterVolumeSlider.value = master;
         if (bgmVolumeSlider != null) bgmVolumeSlider.value = bgm;
         if (seVolumeSlider != null) seVolumeSlider.value = se;
+        _isInitializing = false;
+    }
+
+    public void InitializeFullScreenToggle(bool isFullScreen)
+    {
+        _isInitializing = true;
+        if (fullScreenToggle != null) fullScreenToggle.isOn = isFullScreen;
         _isInitializing = false;
     }
 
@@ -70,6 +83,12 @@ public class SettingsView : MonoBehaviour
     {
         if (_isInitializing) return;
         OnSeVolumeChanged?.Invoke(val);
+    }
+
+    private void HandleFullScreenChanged(bool isOn)
+    {
+        if (_isInitializing) return;
+        OnFullScreenChanged?.Invoke(isOn);
     }
 
     private void MuteMaster() { if (masterVolumeSlider != null) masterVolumeSlider.value = 0f; }

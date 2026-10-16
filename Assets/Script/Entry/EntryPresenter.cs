@@ -63,11 +63,13 @@ public class EntryPresenter : MonoBehaviour
     {
         // 動的生成された設定画面のスライダーに現在の音量値を反映
         settingsView.InitializeSliders(entryModel.MasterVolume, entryModel.BGMVolume, entryModel.SEVolume);
+        settingsView.InitializeFullScreenToggle(entryModel.IsFullScreen);
 
         // 設定画面内のイベントをModelの保存処理に繋ぐ
         settingsView.OnMasterVolumeChanged = entryModel.SaveMasterVolume;
         settingsView.OnBgmVolumeChanged = entryModel.SaveBGMVolume;
         settingsView.OnSeVolumeChanged = entryModel.SaveSEVolume;
+        settingsView.OnFullScreenChanged = entryModel.SaveFullScreen;
 
         // 設定画面内の閉じるボタンが押されたらView側で破棄する
         settingsView.OnCloseSettingsClicked = HandleCloseSettingsClicked;

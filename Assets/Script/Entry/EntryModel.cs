@@ -11,6 +11,7 @@ public class EntryModel : MonoBehaviour
     public float MasterVolume { get; private set; }
     public float BGMVolume { get; private set; }
     public float SEVolume { get; private set; }
+    public bool IsFullScreen { get; private set; }
 
     private SceneLoader _introductionSceneLoader;
 
@@ -27,6 +28,15 @@ public class EntryModel : MonoBehaviour
         BGMVolume = PlayerPrefs.GetFloat(BGMVolumeKey, 1f);
         SEVolume = PlayerPrefs.GetFloat(SEVolumeKey, 1f);
         ApplyVolume();
+
+        IsFullScreen = ScreenModeSettings.Load();
+        ScreenModeSettings.Apply(IsFullScreen);
+    }
+
+    public void SaveFullScreen(bool isFullScreen)
+    {
+        IsFullScreen = isFullScreen;
+        ScreenModeSettings.Save(isFullScreen);
     }
 
     public void SaveMasterVolume(float value)

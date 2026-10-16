@@ -2,6 +2,8 @@ using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Audio;
+using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -34,6 +36,26 @@ public class StoryManager : MonoBehaviour
     /// <summary>セリフ間の暗転演出にかかる全体の時間(秒)</summary>
     [SerializeField] private float storyElementFadeDuration = 1.0f;
 
+    // 設定画面
+    [Header("Settings")]
+    /// <summary>設定画面を開くボタン</summary>
+    [SerializeField] private Button settingsButton;
+    /// <summary>設定画面のプレハブ（タイトル・メイン画面と共通）</summary>
+    [SerializeField] private SettingsView settingsPrefab;
+    /// <summary>設定画面を生成する親のCanvas</summary>
+    [SerializeField] private RectTransform canvasTransform;
+    /// <summary>音量を反映するAudioMixer</summary>
+    [SerializeField] private AudioMixer audioMixer;
+
+    // 音量の保存キー（タイトル・メイン画面と共通）
+    private const string MasterVolumeKey = "MasterVolume";
+    private const string BGMVolumeKey = "BGMVolume";
+    private const string SEVolumeKey = "SEVolume";
+
+    private SettingsView _activeSettings;
+    /// <summary>設定画面を閉じたフレーム（閉じるクリックでセリフが進まないようにする）</summary>
+    private int _settingsClosedFrame = -1;
+
     /// <summary>現在のストーリーデータ配列のインデックス</summary>
     public int storyIndex { get; private set; }
     /// <summary>現在のストーリー内のテキストインデックス</summary>
@@ -48,6 +70,11 @@ public class StoryManager : MonoBehaviour
 
     private void Start()
     {
+        // 保存されている音量をAudioMixerに反映
+        ApplyVolume(MasterVolumeKey, PlayerPrefs.GetFloat(MasterVolumeKey, 1f));
+        ApplyVolume(BGMVolumeKey, PlayerPrefs.GetFloat(BGMVolumeKey, 1f));
+        ApplyVolume(SEVolumeKey, PlayerPrefs.GetFloat(SEVolumeKey, 1f));
+
         // 1. 暗転パネルの初期化（非表示・透明にしておく）
         if (fadeCanvasGroup != null)
         {
@@ -76,6 +103,10 @@ public class StoryManager : MonoBehaviour
         {
             skipButton.onClick.AddListener(OnClickSkipButton);
         }
+        if (settingsButton != null)
+        {
+            settingsButton.onClick.AddListener(OpenSettings);
+        }
     }
 
     private void OnDisable()
@@ -84,16 +115,26 @@ public class StoryManager : MonoBehaviour
         {
             skipButton.onClick.RemoveListener(OnClickSkipButton);
         }
+        if (settingsButton != null)
+        {
+            settingsButton.onClick.RemoveListener(OpenSettings);
+        }
     }
 
     private void Update()
     {
         if (isTransitioning) return;
 
+        // 設定画面を開いている間と、閉じた直後はセリフを進めない
+        if (_activeSettings != null || _settingsClosedFrame == Time.frameCount) return;
+
         bool isSpace = Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame;
         bool isEnter = Keyboard.current != null && Keyboard.current.enterKey.wasPressedThisFrame;
         bool isNumpadEnter = Keyboard.current != null && Keyboard.current.numpadEnterKey.wasPressedThisFrame;
         bool isClick = Mouse.current != null && Mouse.current.leftButton.wasPressedThisFrame;
+
+        // 設定ボタンのクリックではセリフを進めない
+        if (isClick && IsPointerOver(settingsButton)) return;
 
         if (isSpace || isEnter || isNumpadEnter || isClick)
         {
@@ -253,6 +294,83 @@ public class StoryManager : MonoBehaviour
         }
 
         StartCoroutine(FadeAndLoadScene());
+    }
+
+    /// <summary>
+    /// 設定画面を開き、現在の設定値の反映と保存処理の接続を行います。
+    /// </summary>
+    private void OpenSettings()
+    {
+        if (isTransitioning || _activeSettings != null) return;
+        if (settingsPrefab == null || canvasTransform == null) return;
+
+        _activeSettings = Instantiate(settingsPrefab, canvasTransform);
+
+        _activeSettings.InitializeSliders(
+            PlayerPrefs.GetFloat(MasterVolumeKey, 1f),
+            PlayerPrefs.GetFloat(BGMVolumeKey, 1f),
+            PlayerPrefs.GetFloat(SEVolumeKey, 1f));
+        _activeSettings.InitializeFullScreenToggle(ScreenModeSettings.Load());
+
+        _activeSettings.OnMasterVolumeChanged = value => SaveVolume(MasterVolumeKey, value);
+        _activeSettings.OnBgmVolumeChanged = value => SaveVolume(BGMVolumeKey, value);
+        _activeSettings.OnSeVolumeChanged = value => SaveVolume(SEVolumeKey, value);
+        _activeSettings.OnFullScreenChanged = ScreenModeSettings.Save;
+        _activeSettings.OnCloseSettingsClicked = CloseSettings;
+    }
+
+    /// <summary>
+    /// 設定画面を閉じます。
+    /// </summary>
+    private void CloseSettings()
+    {
+        if (_activeSettings == null) return;
+
+        Destroy(_activeSettings.gameObject);
+        _activeSettings = null;
+        _settingsClosedFrame = Time.frameCount;
+    }
+
+    /// <summary>
+    /// 音量を保存し、AudioMixerに反映します。
+    /// </summary>
+    private void SaveVolume(string key, float value)
+    {
+        PlayerPrefs.SetFloat(key, value);
+        PlayerPrefs.Save();
+        ApplyVolume(key, value);
+    }
+
+    /// <summary>
+    /// 音量をAudioMixerに反映します。
+    /// </summary>
+    private void ApplyVolume(string key, float value)
+    {
+        if (audioMixer == null) return;
+
+        // スライダー値(0〜1)をdBに変換。0だと-∞になるので下限を設ける
+        audioMixer.SetFloat(key, Mathf.Log10(Mathf.Clamp(value, 0.0001f, 1f)) * 20f);
+    }
+
+    /// <summary>
+    /// マウスカーソルが指定したボタンの上にあるかを判定します。
+    /// </summary>
+    private bool IsPointerOver(Button button)
+    {
+        if (button == null || EventSystem.current == null || Mouse.current == null) return false;
+
+        var pointerData = new PointerEventData(EventSystem.current)
+        {
+            position = Mouse.current.position.ReadValue()
+        };
+        var results = new List<RaycastResult>();
+        EventSystem.current.RaycastAll(pointerData, results);
+
+        foreach (var result in results)
+        {
+            if (result.gameObject.transform.IsChildOf(button.transform)) return true;
+        }
+        return false;
     }
 
     /// <summary>
