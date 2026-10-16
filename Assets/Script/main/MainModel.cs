@@ -29,6 +29,7 @@ public class MainModel : MonoBehaviour
     public float MasterVolume { get; private set; }
     public float BGMVolume { get; private set; }
     public float SEVolume { get; private set; }
+    public bool IsFullScreen { get; private set; }
 
     // === Outfit State ===
     public OutfitControlMode CurrentMode { get; private set; } = OutfitControlMode.None;
@@ -183,6 +184,14 @@ public class MainModel : MonoBehaviour
         BGMVolume = PlayerPrefs.GetFloat(BGMVolumeKey, 1f);
         SEVolume = PlayerPrefs.GetFloat(SEVolumeKey, 1f);
         ApplyVolume();
+
+        IsFullScreen = ScreenModeSettings.Load();
+    }
+
+    public void SaveFullScreen(bool isFullScreen)
+    {
+        IsFullScreen = isFullScreen;
+        ScreenModeSettings.Save(isFullScreen);
     }
 
     public void SaveMasterVolume(float value)
