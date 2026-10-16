@@ -66,7 +66,7 @@ public class EntryView : ViewBase
         }
         else
         {
-            Debug.LogError("settingsPrefab または canvasTransform がアタッチされていません。");
+            CustomLogger.LogError("settingsPrefab または canvasTransform がアタッチされていません。");
         }
     }
 
@@ -87,13 +87,13 @@ public class EntryView : ViewBase
             }
             else
             {
-                Debug.LogError("creditPrefab に CreditView コンポーネントがアタッチされていません。");
+                CustomLogger.LogError("creditPrefab に CreditView コンポーネントがアタッチされていません。");
                 Destroy(go);
             }
         }
         else
         {
-            Debug.LogError("creditPrefab または canvasTransform がアタッチされていません。");
+            CustomLogger.LogError("creditPrefab または canvasTransform がアタッチされていません。");
         }
     }
 

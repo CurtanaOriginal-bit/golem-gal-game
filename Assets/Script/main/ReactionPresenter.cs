@@ -112,7 +112,7 @@ public class ReactionPresenter : MonoBehaviour
         // クリック時ではなく、実際にアクションが実行されたタイミングでセリフを表示する
         if (buttonView.TargetControlMode != OutfitControlMode.None)
         {
-            Debug.Log($"[ReactionPresenter] ボタンクリック検知。ただしモード切替設定({buttonView.TargetControlMode})のためセリフ表示を保留します。");
+            CustomLogger.LogDebug($"ボタンクリック検知。ただしモード切替設定({buttonView.TargetControlMode})のためセリフ表示を保留します。");
             return;
         }
 
@@ -120,7 +120,7 @@ public class ReactionPresenter : MonoBehaviour
         // クリックイベントではなく OnOrderStateChanged 側で発火させるのでここでは無視する
         if (buttonView.FeatureType != ReactionFeatureType.None)
         {
-            Debug.Log($"[ReactionPresenter] ボタンクリック検知。ただしトグル機能({buttonView.FeatureType})のため状態変更イベントからの発火へ委譲します。");
+            CustomLogger.LogDebug($"ボタンクリック検知。ただしトグル機能({buttonView.FeatureType})のため状態変更イベントからの発火へ委譲します。");
             return;
         }
 
@@ -137,14 +137,14 @@ public class ReactionPresenter : MonoBehaviour
         if (mainModel == null || reactionButtonViews == null) return;
 
         OutfitControlMode currentMode = mainModel.CurrentMode;
-        Debug.Log($"[ReactionPresenter] 着替えアクション実行: {actionType}, 現在のモード: {currentMode}");
+        CustomLogger.LogDebug($"着替えアクション実行: {actionType}, 現在のモード: {currentMode}");
 
         for (int i = 0; i < reactionButtonViews.Length; i++)
         {
             var buttonView = reactionButtonViews[i];
             if (buttonView != null && buttonView.TargetControlMode == currentMode)
             {
-                Debug.Log($"[ReactionPresenter] 保留されていたモード切替設定({currentMode})のセリフを実行します。");
+                CustomLogger.LogDebug($"保留されていたモード切替設定({currentMode})のセリフを実行します。");
                 ExecuteReaction(buttonView);
                 break; // 同じモードのボタンは1つと仮定して終了
             }
@@ -192,7 +192,7 @@ public class ReactionPresenter : MonoBehaviour
             var buttonView = reactionButtonViews[i];
             if (buttonView != null && buttonView.FeatureType == featureType)
             {
-                Debug.Log($"[ReactionPresenter] トグル機能({featureType})がONになったため、保留されていたセリフを実行します。");
+                CustomLogger.LogDebug($"トグル機能({featureType})がONになったため、保留されていたセリフを実行します。");
                 ExecuteReaction(buttonView);
                 break; // 同じ機能のボタンは1つと仮定
             }
@@ -217,7 +217,7 @@ public class ReactionPresenter : MonoBehaviour
                 
                 if (targetView != null)
                 {
-                    Debug.Log($"[ReactionPresenter] トグル機能({featureType})がOFFになったため、テキスト({targetView.gameObject.name})を非表示にします。");
+                    CustomLogger.LogDebug($"トグル機能({featureType})がOFFになったため、テキスト({targetView.gameObject.name})を非表示にします。");
                     targetView.HideText();
                 }
                 break; // 同じ機能のボタンは1つと仮定
@@ -239,7 +239,7 @@ public class ReactionPresenter : MonoBehaviour
             mainModel.IncrementActionCount(buttonView.ActionKeyToIncrement);
         }
 
-        Debug.Log("[ReactionPresenter] リアクション実行。条件リストの数: " + (buttonView.ReactionConditions != null ? buttonView.ReactionConditions.Count : 0));
+        CustomLogger.LogDebug("リアクション実行。条件リストの数: " + (buttonView.ReactionConditions != null ? buttonView.ReactionConditions.Count : 0));
         
         float targetGaugeValue = buttonView.TargetGauge == TargetGaugeType.Gauge2 ? mainModel.Gauge2Value : mainModel.Gauge1Value;
         ShowDialogueIfConditionMet(buttonView.ReactionConditions, targetGaugeValue, buttonView.DisplayTarget);
@@ -260,13 +260,13 @@ public class ReactionPresenter : MonoBehaviour
 
         if (mainModel == null || targetView == null)
         {
-            Debug.LogWarning("[ReactionPresenter] MainModel または 対象のReactionTextView への参照が未設定です。");
+            CustomLogger.LogWarning("MainModel または 対象のReactionTextView への参照が未設定です。");
             return;
         }
 
         if (conditions == null || conditions.Count == 0)
         {
-            Debug.LogWarning("[ReactionPresenter] セリフ条件（ReactionCondition）が1つも設定されていません。");
+            CustomLogger.LogWarning("セリフ条件（ReactionCondition）が1つも設定されていません。");
             return;
         }
 
@@ -305,17 +305,17 @@ public class ReactionPresenter : MonoBehaviour
             }
         }
 
-        Debug.Log($"[ReactionPresenter] 現在のゲージ値: {currentGauge}, 算出された採用閾値: {(highestThreshold == float.MinValue ? "なし" : highestThreshold.ToString())}");
+        CustomLogger.LogDebug($"現在のゲージ値: {currentGauge}, 算出された採用閾値: {(highestThreshold == float.MinValue ? "なし" : highestThreshold.ToString())}");
 
         // 条件を満たすセリフが見つかった場合に表示
         if (!string.IsNullOrEmpty(selectedDialogue))
         {
-            Debug.Log($"[ReactionPresenter] セリフを表示します: {selectedDialogue} (表示先: {targetView.gameObject.name})");
+            CustomLogger.LogDebug($"セリフを表示します: {selectedDialogue} (表示先: {targetView.gameObject.name})");
             targetView.ShowText(selectedDialogue);
         }
         else
         {
-            Debug.LogWarning($"[ReactionPresenter] 現在のゲージ値({currentGauge})を満たすセリフ条件が見つかりませんでした。最低閾値がゲージ値より高く設定されている可能性があります。");
+            CustomLogger.LogWarning($"現在のゲージ値({currentGauge})を満たすセリフ条件が見つかりませんでした。最低閾値がゲージ値より高く設定されている可能性があります。");
         }
     }
 }

@@ -186,7 +186,7 @@ public class MainView : ViewBase
             img.type = Image.Type.Filled;
             img.fillMethod = Image.FillMethod.Horizontal;
             img.fillOrigin = (int)Image.OriginHorizontal.Left;
-            Debug.Log($"[MainView] ゲージImage設定自動適用: {img.gameObject.name}");
+            CustomLogger.LogDebug($"ゲージImage設定自動適用: {img.gameObject.name}");
         }
     }
 
@@ -209,14 +209,14 @@ public class MainView : ViewBase
 
     private void ValidateAttachments()
     {
-        if (dressButton == null) Debug.LogError("[MainView] dressButton がアタッチされていません。");
-        if (stripButton == null) Debug.LogError("[MainView] stripButton がアタッチされていません。");
-        if (upperAreaButton == null) Debug.LogError("[MainView] upperAreaButton がアタッチされていません。");
-        if (lowerAreaButton == null) Debug.LogError("[MainView] lowerAreaButton がアタッチされていません。");
-        if (layerUpperBack == null) Debug.LogError("[MainView] layerUpperBack (画像3) がアタッチされていません。");
-        if (layerUpperFront == null) Debug.LogError("[MainView] layerUpperFront (画像2) がアタッチされていません。");
-        if (layerLowerBack == null) Debug.LogError("[MainView] layerLowerBack (画像5) がアタッチされていません。");
-        if (layerLowerFront == null) Debug.LogError("[MainView] layerLowerFront (画像4) がアタッチされていません。");
+        if (dressButton == null) CustomLogger.LogError("dressButton がアタッチされていません。");
+        if (stripButton == null) CustomLogger.LogError("stripButton がアタッチされていません。");
+        if (upperAreaButton == null) CustomLogger.LogError("upperAreaButton がアタッチされていません。");
+        if (lowerAreaButton == null) CustomLogger.LogError("lowerAreaButton がアタッチされていません。");
+        if (layerUpperBack == null) CustomLogger.LogError("layerUpperBack (画像3) がアタッチされていません。");
+        if (layerUpperFront == null) CustomLogger.LogError("layerUpperFront (画像2) がアタッチされていません。");
+        if (layerLowerBack == null) CustomLogger.LogError("layerLowerBack (画像5) がアタッチされていません。");
+        if (layerLowerFront == null) CustomLogger.LogError("layerLowerFront (画像4) がアタッチされていません。");
     }
 
     private void OnEnable()
@@ -292,7 +292,7 @@ public class MainView : ViewBase
 
                         if (captureToggle.targetToEnable != null) captureToggle.targetToEnable.enabled = true;
                         if (captureToggle.targetToDisable != null) captureToggle.targetToDisable.enabled = false;
-                        Debug.Log($"[MainView] サブスクリーンの強制トグルを実行: {captureToggle.targetToEnable?.gameObject.name} をON, {captureToggle.targetToDisable?.gameObject.name} をOFF");
+                        CustomLogger.LogDebug($"サブスクリーンの強制トグルを実行: {captureToggle.targetToEnable?.gameObject.name} をON, {captureToggle.targetToDisable?.gameObject.name} をOFF");
                     });
                 }
             }
@@ -395,7 +395,7 @@ public class MainView : ViewBase
         }
         else
         {
-            Debug.LogError("[MainView] settingsPrefab または canvasTransform がアタッチされていません。");
+            CustomLogger.LogError("settingsPrefab または canvasTransform がアタッチされていません。");
         }
     }
 
@@ -420,7 +420,7 @@ public class MainView : ViewBase
         }
         else
         {
-            Debug.LogError("[MainView] talkWindowPrefab または canvasTransform がアタッチされていません。");
+            CustomLogger.LogError("talkWindowPrefab または canvasTransform がアタッチされていません。");
         }
     }
 
@@ -475,7 +475,7 @@ public class MainView : ViewBase
         if (dressButton != null) dressButton.interactable = (mode != OutfitControlMode.Dress);
         if (stripButton != null) stripButton.interactable = (mode != OutfitControlMode.Strip);
 
-        Debug.Log($"[MainView] UI状態更新 - 操作有効: {isEnabled}, モード: {mode}");
+        CustomLogger.LogDebug($"UI状態更新 - 操作有効: {isEnabled}, モード: {mode}");
     }
 
     private Coroutine _activeLoopCoroutine;
@@ -636,7 +636,7 @@ public class MainView : ViewBase
                 // 他のループアニメーションと競合しないよう停止させる
                 StopLoopAnimation();
                 _penetrationAnimationCoroutine = StartCoroutine(CoPenetrationAnimation());
-                Debug.Log("[MainView] 挿入アニメーションの再生を開始します。");
+                CustomLogger.LogDebug("挿入アニメーションの再生を開始します。");
             }
         }
         else
@@ -645,7 +645,7 @@ public class MainView : ViewBase
             {
                 StopCoroutine(_penetrationAnimationCoroutine);
                 _penetrationAnimationCoroutine = null;
-                Debug.Log("[MainView] 挿入アニメーションを停止しました。");
+                CustomLogger.LogDebug("挿入アニメーションを停止しました。");
             }
 
             // 元のベース画像に戻す
@@ -692,7 +692,7 @@ public class MainView : ViewBase
                 var currentAmount = amount;
                 btn.onClick.AddListener(() => OnOpeButtonClicked?.Invoke(currentAmount));
             }
-            Debug.Log($"[MainView] Cont_ope内の {buttons.Length} 個のボタンにゲージ増加イベントを登録しました。");
+            CustomLogger.LogDebug($"Cont_ope内の {buttons.Length} 個のボタンにゲージ増加イベントを登録しました。");
         }
 
         if (customGaugeIncreaseButtons != null)
@@ -764,7 +764,7 @@ public class MainView : ViewBase
         {
             gaugeInside2.fillAmount = gauge2FillAmount;
         }
-        Debug.Log($"[MainView] ゲージ表示更新 - Gauge1: {gauge1FillAmount}, Gauge2: {gauge2FillAmount}");
+        CustomLogger.LogDebug($"ゲージ表示更新 - Gauge1: {gauge1FillAmount}, Gauge2: {gauge2FillAmount}");
     }
 
     /// <summary>
@@ -821,7 +821,7 @@ public class MainView : ViewBase
             if (hoverPopups[index].popupObject != null)
             {
                 hoverPopups[index].popupObject.SetActive(isVisible);
-                Debug.Log($"[MainView] ポップアップ[{index}]を {(isVisible ? "表示" : "非表示")} にしました。");
+                CustomLogger.LogDebug($"ポップアップ[{index}]を {(isVisible ? "表示" : "非表示")} にしました。");
             }
         }
     }
@@ -830,20 +830,20 @@ public class MainView : ViewBase
     {
         if (faceTextures == null || faceTextures.Length == 0)
         {
-            Debug.LogWarning("[MainView] 表情テクスチャ(faceTextures)が設定されていません。");
+            CustomLogger.LogWarning("表情テクスチャ(faceTextures)が設定されていません。");
             return;
         }
 
         if (faceIndex < 0 || faceIndex >= faceTextures.Length)
         {
-            Debug.LogWarning($"[MainView] 表情インデックスが範囲外です: {faceIndex} (配列数: {faceTextures.Length})");
+            CustomLogger.LogWarning($"表情インデックスが範囲外です: {faceIndex} (配列数: {faceTextures.Length})");
             return;
         }
 
         Texture2D nextTexture = faceTextures[faceIndex];
         if (nextTexture == null)
         {
-            Debug.LogWarning($"[MainView] 表情インデックス {faceIndex} のテクスチャが null です。");
+            CustomLogger.LogWarning($"表情インデックス {faceIndex} のテクスチャが null です。");
             return;
         }
 
@@ -856,11 +856,11 @@ public class MainView : ViewBase
             targetImage.enabled = true;
 
             targetImage.texture = nextTexture;
-            Debug.Log($"[MainView] 表情更新: インデックス {faceIndex} (適用先: {targetImage.gameObject.name})");
+            CustomLogger.LogDebug($"表情更新: インデックス {faceIndex} (適用先: {targetImage.gameObject.name})");
         }
         else
         {
-            Debug.LogWarning("[MainView] 表情適用先(characterFaceImage/characterRawImage)がありません。");
+            CustomLogger.LogWarning("表情適用先(characterFaceImage/characterRawImage)がありません。");
         }
     }
 }

@@ -197,7 +197,7 @@ public class StoryManager : MonoBehaviour
             }
             else
             {
-                Debug.Log("【ゲーム終了】すべてのストーリーを読み終えました！");
+                CustomLogger.LogInfo("【ゲーム終了】すべてのストーリーを読み終えました！");
 
                 storyIndex = storyDatas.Length - 1;
                 textIndex = storyDatas[storyIndex].stories.Count - 1;
