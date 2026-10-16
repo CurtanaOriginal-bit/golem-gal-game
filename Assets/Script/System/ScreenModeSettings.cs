@@ -6,10 +6,20 @@ using UnityEngine;
 /// </summary>
 public static class ScreenModeSettings
 {
+    /// <summary>
+    /// 表示モードを保存する PlayerPrefs のキー
+    /// </summary>
     private const string FullScreenKey = "FullScreen";
 
     // ウィンドウ表示時のサイズ（Player Settings の Default Screen Width / Height と合わせる）
+    /// <summary>
+    /// ウィンドウ表示時の幅
+    /// </summary>
     private const int WindowedWidth = 1520;
+
+    /// <summary>
+    /// ウィンドウ表示時の高さ
+    /// </summary>
     private const int WindowedHeight = 720;
 
     /// <summary>

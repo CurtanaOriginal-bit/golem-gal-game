@@ -30,17 +30,25 @@ public class ReactionPresenter : MonoBehaviour
     [Tooltip("監視対象となるReactionButtonViewの配列")]
     [SerializeField] private ReactionButtonView[] reactionButtonViews;
 
-
+    /// <summary>
+    /// 有効化時に各種イベントの購読を開始します。
+    /// </summary>
     private void OnEnable()
     {
         SubscribeEvents();
     }
 
+    /// <summary>
+    /// 無効化時に各種イベントの購読を解除します。
+    /// </summary>
     private void OnDisable()
     {
         UnsubscribeEvents();
     }
 
+    /// <summary>
+    /// 破棄時に各種イベントの購読を解除します。
+    /// </summary>
     private void OnDestroy()
     {
         // 念のため破棄時にも確実に購読解除を実施してメモリリークを防止
@@ -296,7 +304,7 @@ public class ReactionPresenter : MonoBehaviour
     /// <param name="conditions">判定対象のセリフ条件リスト</param>
     /// <param name="currentGauge">判定に使用する現在のゲージ値</param>
     /// <param name="displayTarget">セリフの表示先ターゲット</param>
-    private void ShowDialogueIfConditionMet(System.Collections.Generic.IReadOnlyList<ReactionCondition> conditions, float currentGauge, ReactionDisplayTarget displayTarget = ReactionDisplayTarget.Default)
+    private void ShowDialogueIfConditionMet(IReadOnlyList<ReactionCondition> conditions, float currentGauge, ReactionDisplayTarget displayTarget = ReactionDisplayTarget.Default)
     {
         // ターゲット指定に応じて使用するテキストViewを切り替える（未設定ならデフォルトにフォールバック）
         ReactionTextView targetView = (displayTarget == ReactionDisplayTarget.AlternateScreen && alternateTextView != null) 

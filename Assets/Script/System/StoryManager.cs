@@ -15,12 +15,16 @@ public class StoryManager : MonoBehaviour
 {
     /// <summary>ストーリーデータの配列</summary>
     [SerializeField] private StoryData[] storyDatas;
+
     /// <summary>背景画像を表示するImage</summary>
     [SerializeField] private Image background;
+
     /// <summary>キャラクター画像を表示するImage</summary>
     [SerializeField] private Image characterImage;
+
     /// <summary>シナリオテキストを表示するTextMeshProUGUI</summary>
     [SerializeField] private TextMeshProUGUI storyText;
+
     /// <summary>キャラクター名を表示するTextMeshProUGUI</summary>
     [SerializeField] private TextMeshProUGUI characterName;
 
@@ -28,52 +32,63 @@ public class StoryManager : MonoBehaviour
     [SerializeField] private Button skipButton;
 
     // 暗転UI設定
-    [Header("Fade Settings")]
     /// <summary>フェード演出用CanvasGroup</summary>
+    [Header("Fade Settings")]
     [SerializeField] private CanvasGroup fadeCanvasGroup;
+
     /// <summary>シーン遷移時のフェード演出にかかる全体の時間(秒)</summary>
     [SerializeField] private float sceneChangeFadeDuration = 1.0f;
+
     /// <summary>セリフ間の暗転演出にかかる全体の時間(秒)</summary>
     [SerializeField] private float storyElementFadeDuration = 1.0f;
 
     // 設定画面
-    [Header("Settings")]
     /// <summary>設定画面を開くボタン</summary>
+    [Header("Settings")]
     [SerializeField] private Button settingsButton;
+
     /// <summary>設定画面のプレハブ（タイトル・メイン画面と共通）</summary>
     [SerializeField] private SettingsView settingsPrefab;
+
     /// <summary>設定画面を生成する親のCanvas</summary>
     [SerializeField] private RectTransform canvasTransform;
+
     /// <summary>音量を反映するAudioMixer</summary>
     [SerializeField] private AudioMixer audioMixer;
-
-    // 音量の保存キー（タイトル・メイン画面と共通）
-    private const string MasterVolumeKey = "MasterVolume";
-    private const string BGMVolumeKey = "BGMVolume";
-    private const string SEVolumeKey = "SEVolume";
-
-    private SettingsView _activeSettings;
-    /// <summary>設定画面を閉じたフレーム（閉じるクリックでセリフが進まないようにする）</summary>
-    private int _settingsClosedFrame = -1;
-
-    /// <summary>現在のストーリーデータ配列のインデックス</summary>
-    public int storyIndex { get; private set; }
-    /// <summary>現在のストーリー内のテキストインデックス</summary>
-    public int textIndex { get; private set; }
-
-    private bool finishText = false;
-    private bool isTransitioning = false;
-    private IEnumerator _typeSentence;
 
     /// <summary>次に遷移するシーン名</summary>
     [SerializeField] private string nextSceneName = "main_1";
 
+    /// <summary>開いている設定画面（開いていなければ null）</summary>
+    private SettingsView _activeSettings;
+
+    /// <summary>設定画面を閉じたフレーム（閉じるクリックでセリフが進まないようにする）</summary>
+    private int _settingsClosedFrame = -1;
+
+    /// <summary>現在のセリフを最後まで表示し終えたかどうか</summary>
+    private bool _isTextFinished;
+
+    /// <summary>シーン遷移・暗転などの演出中かどうか（演出中は入力を受け付けない）</summary>
+    private bool _isTransitioning;
+
+    /// <summary>実行中の文字送り処理</summary>
+    private IEnumerator _typeSentence;
+
+    /// <summary>現在のストーリーデータ配列のインデックス</summary>
+    public int StoryIndex { get; private set; }
+
+    /// <summary>現在のストーリー内のテキストインデックス</summary>
+    public int TextIndex { get; private set; }
+
+    /// <summary>
+    /// 保存された音量を反映し、画面を初期化して最初のセリフを表示します。
+    /// </summary>
     private void Start()
     {
         // 保存されている音量をAudioMixerに反映
-        ApplyVolume(MasterVolumeKey, PlayerPrefs.GetFloat(MasterVolumeKey, 1f));
-        ApplyVolume(BGMVolumeKey, PlayerPrefs.GetFloat(BGMVolumeKey, 1f));
-        ApplyVolume(SEVolumeKey, PlayerPrefs.GetFloat(SEVolumeKey, 1f));
+        ApplySavedVolume(VolumeSettings.MasterVolumeKey);
+        ApplySavedVolume(VolumeSettings.BGMVolumeKey);
+        ApplySavedVolume(VolumeSettings.SEVolumeKey);
 
         // 1. 暗転パネルの初期化（非表示・透明にしておく）
         if (fadeCanvasGroup != null)
@@ -94,9 +109,12 @@ public class StoryManager : MonoBehaviour
         }
 
         // 3. 最初のセリフの読み込み（ここでデータがあれば表示される）
-        StartCoroutine(PlayStoryElement(storyIndex, textIndex));
+        StartCoroutine(PlayStoryElement(StoryIndex, TextIndex));
     }
 
+    /// <summary>
+    /// 有効化時に Skip・設定ボタンのクリックイベントを購読します。
+    /// </summary>
     private void OnEnable()
     {
         if (skipButton != null)
@@ -109,6 +127,9 @@ public class StoryManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 無効化時に Skip・設定ボタンのクリックイベントの購読を解除します。
+    /// </summary>
     private void OnDisable()
     {
         if (skipButton != null)
@@ -121,9 +142,12 @@ public class StoryManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// キー入力・クリックでセリフを進めます（文字送り中なら全文を表示します）。
+    /// </summary>
     private void Update()
     {
-        if (isTransitioning) return;
+        if (_isTransitioning) return;
 
         // 設定画面を開いている間と、閉じた直後はセリフを進めない
         if (_activeSettings != null || _settingsClosedFrame == Time.frameCount) return;
@@ -138,14 +162,14 @@ public class StoryManager : MonoBehaviour
 
         if (isSpace || isEnter || isNumpadEnter || isClick)
         {
-            if (finishText)
+            if (_isTextFinished)
             {
-                textIndex++;
-                ProgressionStory(storyIndex);
+                TextIndex++;
+                ProgressionStory(StoryIndex);
             }
             else
             {
-                SkipToFullText(storyIndex, textIndex);
+                SkipToFullText(StoryIndex, TextIndex);
             }
         }
     }
@@ -153,14 +177,14 @@ public class StoryManager : MonoBehaviour
     /// <summary>
     /// ストーリー要素を再生し、必要であれば暗転演出を挟んでUIを更新します。
     /// </summary>
-    private IEnumerator PlayStoryElement(int _storyIndex, int _textIndex)
+    private IEnumerator PlayStoryElement(int storyIndex, int textIndex)
     {
-        var storyElement = storyDatas[_storyIndex].stories[_textIndex];
+        var storyElement = storyDatas[storyIndex].stories[textIndex];
 
         // 演出フラグによるフェードアウト・インの処理
         if (storyElement.isFadeIn && fadeCanvasGroup != null)
         {
-            isTransitioning = true; // 演出中は入力をロック
+            _isTransitioning = true; // 演出中は入力をロック
 
             // 画面を暗転（フェードアウト）
             yield return StartCoroutine(FadeCanvas(fadeCanvasGroup.alpha, 1f, storyElementFadeDuration / 2f));
@@ -172,7 +196,7 @@ public class StoryManager : MonoBehaviour
             // 画面を明転（フェードイン）
             yield return StartCoroutine(FadeCanvas(1f, 0f, storyElementFadeDuration / 2f));
             
-            isTransitioning = false; // 入力ロック解除
+            _isTransitioning = false; // 入力ロック解除
         }
         else
         {
@@ -186,7 +210,7 @@ public class StoryManager : MonoBehaviour
             StopCoroutine(_typeSentence);
         }
 
-        _typeSentence = TypeSentence(_storyIndex, _textIndex);
+        _typeSentence = TypeSentence(storyIndex, textIndex);
         StartCoroutine(_typeSentence);
     }
 
@@ -219,29 +243,29 @@ public class StoryManager : MonoBehaviour
     /// <summary>
     /// 次のセリフや次のストーリーデータへ進行します。
     /// </summary>
-    private void ProgressionStory(int _storyIndex)
+    private void ProgressionStory(int storyIndex)
     {
         characterName.text = "";
 
-        if (textIndex < storyDatas[_storyIndex].stories.Count)
+        if (TextIndex < storyDatas[storyIndex].stories.Count)
         {
-            StartCoroutine(PlayStoryElement(_storyIndex, textIndex));
+            StartCoroutine(PlayStoryElement(storyIndex, TextIndex));
         }
         else
         {
-            textIndex = 0;
-            storyIndex++;
+            TextIndex = 0;
+            StoryIndex++;
 
-            if (storyIndex < storyDatas.Length)
+            if (StoryIndex < storyDatas.Length)
             {
-                StartCoroutine(PlayStoryElement(storyIndex, textIndex));
+                StartCoroutine(PlayStoryElement(StoryIndex, TextIndex));
             }
             else
             {
                 Debug.Log("【ゲーム終了】すべてのストーリーを読み終えました！");
 
-                storyIndex = storyDatas.Length - 1;
-                textIndex = storyDatas[storyIndex].stories.Count - 1;
+                StoryIndex = storyDatas.Length - 1;
+                TextIndex = storyDatas[StoryIndex].stories.Count - 1;
 
                 // 終了時は暗転を挟んでシーン遷移
                 StartCoroutine(FadeAndLoadScene());
@@ -252,33 +276,33 @@ public class StoryManager : MonoBehaviour
     /// <summary>
     /// テキストを1文字ずつ表示するコルーチン
     /// </summary>
-    private IEnumerator TypeSentence(int _storyIndex, int _textIndex)
+    private IEnumerator TypeSentence(int storyIndex, int textIndex)
     {
-        finishText = false;
+        _isTextFinished = false;
         storyText.text = "";
 
         // 文字列の1文字ずつを処理
-        foreach (var letter in storyDatas[_storyIndex].stories[_textIndex].StoryText.ToCharArray())
+        foreach (var letter in storyDatas[storyIndex].stories[textIndex].StoryText.ToCharArray())
         {
             storyText.text += letter;
             yield return new WaitForSeconds(0.05f);
         }
 
-        finishText = true;
+        _isTextFinished = true;
     }
 
     /// <summary>
     /// テキストを一気に全文表示します
     /// </summary>
-    private void SkipToFullText(int _storyIndex, int _textIndex)
+    private void SkipToFullText(int storyIndex, int textIndex)
     {
         if (_typeSentence != null)
         {
             StopCoroutine(_typeSentence);
         }
 
-        storyText.text = storyDatas[_storyIndex].stories[_textIndex].StoryText;
-        finishText = true;
+        storyText.text = storyDatas[storyIndex].stories[textIndex].StoryText;
+        _isTextFinished = true;
     }
 
     /// <summary>
@@ -286,7 +310,7 @@ public class StoryManager : MonoBehaviour
     /// </summary>
     public void OnClickSkipButton()
     {
-        if (isTransitioning) return;
+        if (_isTransitioning) return;
 
         if (_typeSentence != null)
         {
@@ -301,20 +325,20 @@ public class StoryManager : MonoBehaviour
     /// </summary>
     private void OpenSettings()
     {
-        if (isTransitioning || _activeSettings != null) return;
+        if (_isTransitioning || _activeSettings != null) return;
         if (settingsPrefab == null || canvasTransform == null) return;
 
         _activeSettings = Instantiate(settingsPrefab, canvasTransform);
 
         _activeSettings.InitializeSliders(
-            PlayerPrefs.GetFloat(MasterVolumeKey, 1f),
-            PlayerPrefs.GetFloat(BGMVolumeKey, 1f),
-            PlayerPrefs.GetFloat(SEVolumeKey, 1f));
+            VolumeSettings.Load(VolumeSettings.MasterVolumeKey),
+            VolumeSettings.Load(VolumeSettings.BGMVolumeKey),
+            VolumeSettings.Load(VolumeSettings.SEVolumeKey));
         _activeSettings.InitializeFullScreenToggle(ScreenModeSettings.Load());
 
-        _activeSettings.OnMasterVolumeChanged = value => SaveVolume(MasterVolumeKey, value);
-        _activeSettings.OnBgmVolumeChanged = value => SaveVolume(BGMVolumeKey, value);
-        _activeSettings.OnSeVolumeChanged = value => SaveVolume(SEVolumeKey, value);
+        _activeSettings.OnMasterVolumeChanged = value => SaveVolume(VolumeSettings.MasterVolumeKey, value);
+        _activeSettings.OnBgmVolumeChanged = value => SaveVolume(VolumeSettings.BGMVolumeKey, value);
+        _activeSettings.OnSeVolumeChanged = value => SaveVolume(VolumeSettings.SEVolumeKey, value);
         _activeSettings.OnFullScreenChanged = ScreenModeSettings.Save;
         _activeSettings.OnCloseSettingsClicked = CloseSettings;
     }
@@ -336,26 +360,22 @@ public class StoryManager : MonoBehaviour
     /// </summary>
     private void SaveVolume(string key, float value)
     {
-        PlayerPrefs.SetFloat(key, value);
-        PlayerPrefs.Save();
-        ApplyVolume(key, value);
+        VolumeSettings.Save(key, value);
+        VolumeSettings.ApplyToMixer(audioMixer, key, value);
     }
 
     /// <summary>
-    /// 音量をAudioMixerに反映します。
+    /// 保存されている音量をAudioMixerに反映します。
     /// </summary>
-    private void ApplyVolume(string key, float value)
+    private void ApplySavedVolume(string key)
     {
-        if (audioMixer == null) return;
-
-        // スライダー値(0〜1)をdBに変換。0だと-∞になるので下限を設ける
-        audioMixer.SetFloat(key, Mathf.Log10(Mathf.Clamp(value, 0.0001f, 1f)) * 20f);
+        VolumeSettings.ApplyToMixer(audioMixer, key, VolumeSettings.Load(key));
     }
 
     /// <summary>
     /// マウスカーソルが指定したボタンの上にあるかを判定します。
     /// </summary>
-    private bool IsPointerOver(Button button)
+    private static bool IsPointerOver(Button button)
     {
         if (button == null || EventSystem.current == null || Mouse.current == null) return false;
 
@@ -404,7 +424,7 @@ public class StoryManager : MonoBehaviour
     /// </summary>
     private IEnumerator FadeAndLoadScene()
     {
-        isTransitioning = true;
+        _isTransitioning = true;
 
         if (fadeCanvasGroup != null)
         {

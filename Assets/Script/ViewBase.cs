@@ -1,16 +1,8 @@
 using UnityEngine;
 
+/// <summary>
+/// View の基底クラスです（現在は共通の処理を持ちません）。
+/// </summary>
 public class ViewBase : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 }

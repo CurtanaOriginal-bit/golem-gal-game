@@ -7,11 +7,20 @@ using UnityEngine.UI;
 /// </summary>
 public class ButtonClickSE : MonoBehaviour
 {
+    /// <summary>
+    /// 決定音を付けないボタンのリスト
+    /// </summary>
     [Tooltip("決定音を付けないボタン（キャラクターのクリック判定など）")]
     [SerializeField] private Button[] excludedButtons;
 
+    /// <summary>
+    /// 決定音を登録したボタンの一覧（解除用）
+    /// </summary>
     private Button[] _buttons;
 
+    /// <summary>
+    /// 配下のボタンを集め、決定音を鳴らす処理を登録します。
+    /// </summary>
     private void Awake()
     {
         // 非表示のボタンも、あとで表示されたときに鳴るよう含めて登録する
@@ -25,6 +34,9 @@ public class ButtonClickSE : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 破棄時に登録した決定音の処理を解除します。
+    /// </summary>
     private void OnDestroy()
     {
         if (_buttons == null) return;
@@ -35,6 +47,9 @@ public class ButtonClickSE : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// SEPlayer から決定音を鳴らします。
+    /// </summary>
     private static void PlayClick()
     {
         if (SEPlayer.Instance != null) SEPlayer.Instance.PlayClick();

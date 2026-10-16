@@ -19,8 +19,11 @@ public interface IReactionButtonView
 /// </summary>
 public enum TargetGaugeType
 {
-    Gauge1, // 興奮度ゲージ (Outside1)
-    Gauge2  // 射精感ゲージ (Inside2)
+    /// <summary>興奮度ゲージ (Outside1)</summary>
+    Gauge1,
+
+    /// <summary>射精感ゲージ (Inside2)</summary>
+    Gauge2
 }
 
 /// <summary>
@@ -28,8 +31,11 @@ public enum TargetGaugeType
 /// </summary>
 public enum ReactionDisplayTarget
 {
-    Default,        // 通常の表示先（今までと同じ）
-    AlternateScreen // 別の場所（Order_Blowjobなどのサブスクリーン用）
+    /// <summary>通常の表示先</summary>
+    Default,
+
+    /// <summary>別の場所（Order_Blowjobなどのサブスクリーン用）</summary>
+    AlternateScreen
 }
 
 /// <summary>
@@ -37,9 +43,14 @@ public enum ReactionDisplayTarget
 /// </summary>
 public enum ReactionFeatureType
 {
-    None,               // 通常のクリックボタン
-    PenetrationToggle,  // 挿入トグルボタン
-    BlowjobToggle       // フェラチオトグルボタン
+    /// <summary>通常のクリックボタン</summary>
+    None,
+
+    /// <summary>挿入トグルボタン</summary>
+    PenetrationToggle,
+
+    /// <summary>フェラチオトグルボタン</summary>
+    BlowjobToggle
 }
 
 /// <summary>
@@ -148,6 +159,9 @@ public class ReactionButtonView : MonoBehaviour, IReactionButtonView
     /// </summary>
     public AudioClip LoopSE => loopSE;
 
+    /// <summary>
+    /// クリックを検知する Button コンポーネント
+    /// </summary>
     private Button _button;
 
     /// <summary>
@@ -155,12 +169,18 @@ public class ReactionButtonView : MonoBehaviour, IReactionButtonView
     /// </summary>
     public event Action<ReactionButtonView> OnClicked;
 
+    /// <summary>
+    /// Button コンポーネントを取得してキャッシュします。
+    /// </summary>
     private void Awake()
     {
         // パフォーマンス向上のためコンポーネントをキャッシュ
         _button = GetComponent<Button>();
     }
 
+    /// <summary>
+    /// 有効化時にボタンのクリックイベントを購読します。
+    /// </summary>
     private void OnEnable()
     {
         if (_button != null)
@@ -169,6 +189,9 @@ public class ReactionButtonView : MonoBehaviour, IReactionButtonView
         }
     }
 
+    /// <summary>
+    /// 無効化時にボタンのクリックイベントの購読を解除します。
+    /// </summary>
     private void OnDisable()
     {
         if (_button != null)
