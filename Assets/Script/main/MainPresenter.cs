@@ -100,11 +100,13 @@ public class MainPresenter : MonoBehaviour
     {
         // 動的生成された設定画面のスライダーに現在の音量値を反映
         settingsView.InitializeSliders(mainModel.MasterVolume, mainModel.BGMVolume, mainModel.SEVolume);
+        settingsView.InitializeFullScreenToggle(mainModel.IsFullScreen);
 
         // 設定画面内のイベントをModelの保存処理に繋ぐ
         settingsView.OnMasterVolumeChanged = mainModel.SaveMasterVolume;
         settingsView.OnBgmVolumeChanged = mainModel.SaveBGMVolume;
         settingsView.OnSeVolumeChanged = mainModel.SaveSEVolume;
+        settingsView.OnFullScreenChanged = mainModel.SaveFullScreen;
 
         // 設定画面内の閉じるボタンが押されたらView側で破棄する
         settingsView.OnCloseSettingsClicked = HandleCloseSettingsClicked;
